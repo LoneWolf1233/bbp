@@ -44,6 +44,10 @@ declare -A go_tools=(
   [dnsx]="github.com/projectdiscovery/dnsx/cmd/dnsx@latest"
   [hakrawler]="github.com/hakluke/hakrawler@latest"
   [amass]="github.com/owasp-amass/amass/v4/...@master"
+  [ffuf]="github.com/ffuf/ffuf/v2@latest"
+  [gobuster]="github.com/OJ/gobuster/v3@latest"
+  [dalfox]="github.com/hahwul/dalfox/v2@latest"
+  
 )
 
 echo -e "${yellow}Installing Go-based tools...${reset}"
@@ -132,6 +136,13 @@ fi
 echo "Downloading Seclists..."
 git clone https://github.com/danielmiessler/SecLists.git "$TOOL_DIR/seclists"
 
+#FuzzDB
+echo "Downloading FuzzDB..."
+git clone https://github.com/fuzzdb-project/fuzzdb.git "$TOOL_DIR/FuzzDB"
+
+#Portable-Wordlists
+echo "Downloading PayloadsAlltheThings..."
+git clone https://github.com/swisskyrepo/PayloadsAllTheThings.git "$TOOL_DIR/PayloadsAllTheThings"
 
 
 
