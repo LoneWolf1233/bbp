@@ -47,7 +47,7 @@ declare -A go_tools=(
   [ffuf]="github.com/ffuf/ffuf/v2@latest"
   [gobuster]="github.com/OJ/gobuster/v3@latest"
   [dalfox]="github.com/hahwul/dalfox/v2@latest"
-  
+
 )
 
 echo -e "${yellow}Installing Go-based tools...${reset}"
@@ -56,6 +56,18 @@ for tool in "${!go_tools[@]}"; do
   go install "${go_tools[$tool]}"
   sudo mv -f "$GOBIN/$tool" /usr/bin/
 done
+
+echo "Installing gf..."
+go install github.com/tomnomnom/gf@latest
+mkdir -p ~/.gf
+
+echo "Downloading gf patterns..."
+git clone https://github.com/1ndianl33t/Gf-Patterns.git "$WORDLIST_DIR/gf-patterns"
+cp "$WORLDLIST_DIR/gf-patterns"/*.json ~/.gif/
+
+echo "Setting up gf bash completions..."
+echo 'source ~/.gf/gf-completions.bash' >> ~/.bashrc
+source ~/.bashrc
 
 # === Python-based Tools ===
 
