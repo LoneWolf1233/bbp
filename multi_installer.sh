@@ -16,8 +16,12 @@ reset='\033[0m'
 
 # === Setup ===
 TOOLS_DIR=~/tools
+PYTHON_VENV=~/Python-Environments
+export WORDLIST_DIR="$TOOL_DIR/wordlists"
 GOBIN=$(go env GOPATH)/bin
+mkdir -p "$WORDLIST_DIR"
 mkdir -p "$TOOLS_DIR"
+mkdir -p "$PYTHON_VENV"
 
 echo -e "${green}Updating and upgrading your OS...${reset}"
 sudo apt update -y && sudo apt upgrade -y
@@ -39,6 +43,7 @@ declare -A go_tools=(
   [waybackurls]="github.com/tomnomnom/waybackurls@latest"
   [dnsx]="github.com/projectdiscovery/dnsx/cmd/dnsx@latest"
   [hakrawler]="github.com/hakluke/hakrawler@latest"
+  [amass]="github.com/owasp-amass/amass/v4/...@master"
 )
 
 echo -e "${yellow}Installing Go-based tools...${reset}"
@@ -49,6 +54,42 @@ for tool in "${!go_tools[@]}"; do
 done
 
 # === Python-based Tools ===
+
+#XSStrike
+echo "Installing XSStrike in a virtual environment..."
+git clone https://github.com/s0md3v/XSStrike.git "$TOOL_DIR/xsstrike"
+cd $TOOL_DIR/xsstrike/XSStrike
+python3 -m venv ~/$PYTHON_VENV/xsstrike
+source ~/$PYTHON_VENV/xsstrike/bin/activate
+pip install -r requirements.txt
+deactivate
+cd ~
+
+#Dirsearch
+echo "Installing dirsearch in a virtual environment..."
+git clone https://github.com/maurosoria/dirsearch.git "$TOOL_DIR/dirsearch"
+cd $TOOL_DIR/dirsearch/dirsearch
+python3 -m venv ~/$PYTHON_VENV/dirsearch
+source ~/$PYTHON_VENV/dirsearch/bin/activate
+pip install -r requirements.txt
+deactivate
+cd ~
+
+#theHarvester
+echo "Installing theHarvester in a virtual environment..."
+git clone https://github.com/laramies/theHarvester.git "$TOOL_DIR/theHarvester"
+cd "$TOOL_DIR/theHarvester"
+
+python3 -m venv "$PYTHON_VENV/theHarvester"
+source "$PYTHON_VENV/theHarvester/bin/activate"
+
+pip install --upgrade pip setuptools
+pip install -r requirements/base.txt
+pip install -r requirements/dev.txt 2>/dev/null || true
+
+deactivate
+cd ~
+
 
 # Paramspider
 echo -e "${yellow}Installing Paramspider...${reset}"
@@ -84,6 +125,15 @@ if [ ! -d "$TOOLS_DIR/nikto" ]; then
 else
   echo -e "${red}Nikto already exists, skipping...${reset}"
 fi
+
+# === Wordlists ===
+
+# SecLists ===
+echo "Downloading Seclists..."
+git clone https://github.com/danielmiessler/SecLists.git "$TOOL_DIR/seclists"
+
+
+
 
 # === Final Output ===
 echo -e "${green}All tools installed successfully!${reset}"
