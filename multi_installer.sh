@@ -1,4 +1,39 @@
 #!/bin/bash
+# multi_installer.sh - Automated installer for security tools and wordlists
+# Usage: bash multi_installer.sh
+# Author: Lone Wolf
+# Last updated: [25-5-2025]
+
+# === Strict Mode ===
+set -euo pipefail
+IFS=$'\n\t'
+
+# === Root Check ===
+if [[ $EUID -ne 0 ]]; then
+  echo -e "\033[0;31m[!] Please run as root (sudo).\033[0m"
+  exit 1
+fi
+
+# === Logging ===
+LOGFILE="$HOME/multi_installer.log"
+# Progress bar function
+progress() {
+  local duration=$1
+  local message=$2
+  local i=0
+  tput civis
+  echo -ne "$message ["
+  while [ $i -lt $duration ]; do
+    echo -ne "#"
+    sleep 0.1
+    ((i++))
+  done
+  echo -e "] done."
+  tput cnorm
+}
+
+# Log only echos, suppress command output
+exec > >(awk '/^\033/ {print;fflush();}' | tee -a "$LOGFILE") 2>&1
 set -e
 echo -e " 
  _                   __        __    _  __
@@ -32,6 +67,9 @@ sudo apt install -y python3 python3-pip pipx golang-go git wget unzip perl curl
 pipx ensurepath
 export PATH="$PATH:$GOBIN"
 
+echo -e "${green}Installing Nmap...${reset}"
+sudo apt install -y nmap
+
 # === Go Tools Installation ===
 declare -A go_tools=(
   [assetfinder]="github.com/tomnomnom/assetfinder@latest"
@@ -47,7 +85,7 @@ declare -A go_tools=(
   [ffuf]="github.com/ffuf/ffuf/v2@latest"
   [gobuster]="github.com/OJ/gobuster/v3@latest"
   [dalfox]="github.com/hahwul/dalfox/v2@latest"
-
+  [kxss]="github.com/Emoe/kxss@latest"
 )
 
 echo -e "${yellow}Installing Go-based tools...${reset}"
@@ -146,18 +184,19 @@ fi
 
 # SecLists ===
 echo "Downloading Seclists..."
-git clone https://github.com/danielmiessler/SecLists.git "$TOOL_DIR/seclists"
+git clone https://github.com/danielmiessler/SecLists.git "$TOOL_DIR/wordlists/seclists"
 
 #FuzzDB
 echo "Downloading FuzzDB..."
-git clone https://github.com/fuzzdb-project/fuzzdb.git "$TOOL_DIR/FuzzDB"
+git clone https://github.com/fuzzdb-project/fuzzdb.git "$TOOL_DIR/wordlists/FuzzDB"
 
 #Portable-Wordlists
 echo "Downloading PayloadsAlltheThings..."
-git clone https://github.com/swisskyrepo/PayloadsAllTheThings.git "$TOOL_DIR/PayloadsAllTheThings"
+git clone https://github.com/swisskyrepo/PayloadsAllTheThings.git "$TOOL_DIR/wordlists/PayloadsAllTheThings"
 
-
-
+#Dirbuster Wordlist
+echo "Downloading dirbuster wordlist"
+git clone https://github.com/digination/dirbuster-ng/tree/master/wordlists "$TOOL_DIR/wordlists/dirb"
 # === Final Output ===
 echo -e "${green}All tools installed successfully!${reset}"
 echo -e "${yellow}Run 'source ~/.bashrc' or restart your terminal to use the aliases.${reset}"
