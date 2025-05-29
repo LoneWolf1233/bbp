@@ -179,12 +179,14 @@ declare -A go_tools=(
   [gobuster]="github.com/OJ/gobuster/v3@latest"
   [dalfox]="github.com/hahwul/dalfox/v2@latest"
   [kxss]="github.com/Emoe/kxss@latest"
+  [subzy]="github.com/PentestPad/subzy@latest"
+  [shortscan]="go install github.com/bitquark/shortscan/cmd/shortscan@latest"
 )
 
 echo -e "${yellow}Installing Go-based tools...${reset}"
 for tool in "${!go_tools[@]}"; do
   echo -e "${green}Installing $tool...${reset}"
-  go install "${go_tools[$tool]}"
+  go install -v "${go_tools[$tool]}"
   sudo mv -f "$GOBIN/$tool" /usr/bin/
 done
 
@@ -208,6 +210,16 @@ git clone https://github.com/s0md3v/XSStrike.git "$TOOL_DIR/xsstrike"
 cd $TOOL_DIR/xsstrike/XSStrike
 python3 -m venv ~/$PYTHON_VENV/xsstrike
 source ~/$PYTHON_VENV/xsstrike/bin/activate
+pip install -r requirements.txt
+deactivate
+cd ~
+
+#DNSReaper
+echo "Installing DNSReaper in a virtual environment..."
+git clone https://github.com/punk-security/dnsReaper.git "$TOOL_DIR/dnsreaper"
+cd $TOOL_DIR/dnsreaper/dnsReaper
+python3 -m venv ~/$PYTHON_VENV/dnsreaper
+source ~/$PYTHON_VENV/dnsreaper/bin/activate
 pip install -r requirements.txt
 deactivate
 cd ~
