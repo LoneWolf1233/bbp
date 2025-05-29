@@ -190,6 +190,11 @@ for tool in "${!go_tools[@]}"; do
   sudo mv -f "$GOBIN/$tool" /usr/bin/
 done
 
+#Trufflehog
+echo "Installing Trufflehog..."
+git clone https://github.com/trufflesecurity/trufflehog.git "$TOOLS_DIR"
+cd "$TOOLS_DIR/trufflehog"; go install
+
 echo "Installing gf..."
 go install github.com/tomnomnom/gf@latest
 mkdir -p ~/.gf
@@ -214,15 +219,16 @@ pip install -r requirements.txt
 deactivate
 cd ~
 
-#DNSReaper
-echo "Installing DNSReaper in a virtual environment..."
-git clone https://github.com/punk-security/dnsReaper.git "$TOOL_DIR/dnsreaper"
-cd $TOOL_DIR/dnsreaper/dnsReaper
-python3 -m venv ~/$PYTHON_VENV/dnsreaper
-source ~/$PYTHON_VENV/dnsreaper/bin/activate
-pip install -r requirements.txt
+#WaafW00f
+echo "Installing waafw00f in a virtual environment..."
+git clone https://github.com/EnableSecurity/wafw00f.git "$TOOL_DIR"
+cd $TOOL_DIR/wafw00f/
+python3 -m venv ~/$PYTHON_VENV/wafw00f
+source ~/$PYTHON_VENV/wafw00f/bin/activate
+pip3 install wafw00f
 deactivate
 cd ~
+
 
 #CSRF Scanner
 echo "Downloading CSRF Scanner (Bolt)..."
@@ -326,6 +332,10 @@ git clone https://github.com/swisskyrepo/PayloadsAllTheThings.git "$TOOL_DIR/wor
 #Dirbuster Wordlist
 echo "Downloading dirbuster wordlist"
 git clone https://github.com/digination/dirbuster-ng/tree/master/wordlists "$TOOL_DIR/wordlists/dirb"
+
+#OneForAll
+echo "Downloading OneForAll wordlist..."
+git clone https://github.com/six2dez/OneListForAll "$TOOL_DIR/wordlists/oneforall"
 
 # === Final Output ===
 echo -e "${green}All tools installed successfully!${reset}"
