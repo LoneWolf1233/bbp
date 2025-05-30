@@ -2,7 +2,7 @@
 # === multi_installer.sh - Automated installer for security tools and wordlists ===
 # Usage: bash multi_installer.sh [--install|--uninstall|--help]
 # Author: Lone Wolf
-# Last updated: [27-5-2025]
+# Last updated: [30-5-2025]
 
 
 # === Interactive Mode ===
@@ -163,6 +163,11 @@ export PATH="$PATH:$GOBIN"
 echo -e "${green}Installing Nmap...${reset}"
 sudo apt install -y nmap
 
+echo "Installing npm..."
+sudo apt install npm nodejs
+
+npm install broken-link-checker -g
+
 # === Go Tools Installation ===
 declare -A go_tools=(
   [assetfinder]="github.com/tomnomnom/assetfinder@latest"
@@ -245,8 +250,18 @@ echo "Downloading SSRFmap..."
 git clone https://github.com/swisskyrepo/SSRFmap.git "$TOOL_DIR/SSRFmap"
 cd $TOOL_DIR/SSRFmap/SSRFmap
 python3 -m venv ~/$PYTHON_VENV/ssrfmap
-source ~/$PYTHON_VENV/ssrfmap
+source ~/$PYTHON_VENV/ssrfmap/bin/activate
 pip install -r requirements.txt
+deactivate
+cd ~
+
+#Wapiti
+echo ""Downloading Wapiti..."
+git clone https://github.com/wapiti-scanner/wapiti.git $TOOL_DIR/
+cd $TOOL_DIR/wapiti_scanner
+python3 -m venv ~/$PYTHON_VENV/wapiti
+source ~/$PYTHON_VENV/wapiti/bin/activate
+pip install .
 deactivate
 cd ~
 
