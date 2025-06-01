@@ -4,109 +4,6 @@
 # Author: Lone Wolf
 # Last updated: [30-5-2025]
 
-
-# === Interactive Mode ===
-INTERACTIVE=0
-ACTION="install"
-
-for arg in "$@"; do
-  case $arg in
-    --uninstall) ACTION="uninstall"; shift ;;
-    --interactive) INTERACTIVE=1; shift ;;
-    --help)
-      echo "Usage: $0 [--install|--uninstall] [--interactive]"
-      exit 0
-      ;;
-  esac
-done
-
-# === Version Check Function ===
-check_version() {
-  local tool=$1
-  local cmd=$2
-  local version
-  if command -v "$cmd" &>/dev/null; then
-    version=$($cmd --version 2>&1 | head -n1)
-    echo -e "${green}$tool version:${reset} $version"
-  else
-    echo -e "${red}$tool not found.${reset}"
-  fi
-}
-
-# === Uninstall/Cleanup Functionality ===
-uninstall_tools() {
-  echo -e "${yellow}Uninstalling tools and cleaning up...${reset}"
-  # Remove Go tools
-  for tool in assetfinder gau httpx katana nuclei subfinder waybackurls dnsx hakrawler amass ffuf gobuster dalfox kxss gf; do
-    sudo rm -f /usr/bin/$tool
-  done
-  # Remove Python virtual environments and tool directories
-  rm -rf ~/tools
-  rm -rf ~/Python-Environments
-  # Remove wordlists
-  rm -rf ~/tools/wordlists
-  # Remove aliases from .bashrc
-  sed -i '/alias sqlmap=/d' ~/.bashrc
-  sed -i '/alias nikto=/d' ~/.bashrc
-  # Remove gf completions
-  sed -i '/gf-completions.bash/d' ~/.bashrc
-  # Remove pipx tools
-  pipx uninstall arjun || true
-  pipx uninstall uro || true
-  pipx uninstall paramspider || true
-  # Remove log file
-  rm -f ~/multi_installer.log
-  echo -e "${green}Uninstallation and cleanup complete.${reset}"
-}
-
-# === Interactive Prompt ===
-prompt_install() {
-  echo -e "${yellow}Interactive mode enabled. Select what to install:${reset}"
-  declare -A choices
-  choices=(
-    [nmap]=0 [go_tools]=0 [python_tools]=0 [wordlists]=0 [aliases]=0
-  )
-  read -p "Install Nmap? (y/n): " yn; [[ $yn =~ ^[Yy]$ ]] && choices[nmap]=1
-  read -p "Install Go-based tools? (y/n): " yn; [[ $yn =~ ^[Yy]$ ]] && choices[go_tools]=1
-  read -p "Install Python-based tools? (y/n): " yn; [[ $yn =~ ^[Yy]$ ]] && choices[python_tools]=1
-  read -p "Download wordlists? (y/n): " yn; [[ $yn =~ ^[Yy]$ ]] && choices[wordlists]=1
-  read -p "Add aliases to .bashrc? (y/n): " yn; [[ $yn =~ ^[Yy]$ ]] && choices[aliases]=1
-  export CHOICES="${choices[@]}"
-}
-
-# === Main Control ===
-if [[ "$ACTION" == "uninstall" ]]; then
-  if [[ $INTERACTIVE -eq 1 ]]; then
-    read -p "Are you sure you want to uninstall all tools and clean up? (y/n): " yn
-    [[ $yn =~ ^[Yy]$ ]] || { echo "Aborted."; exit 0; }
-  fi
-  uninstall_tools
-  exit 0
-fi
-
-if [[ $INTERACTIVE -eq 1 ]]; then
-  prompt_install
-fi
-
-# === Version Checks (examples, add more as needed) ===
-echo -e "${yellow}Checking versions of key tools...${reset}"
-check_version "Go" go
-check_version "Python3" python3
-check_version "pipx" pipx
-check_version "Nmap" nmap
-
-
-
-# === Strict Mode ===
-set -euo pipefail
-IFS=$'\n\t'
-
-# === Root Check ===
-if [[ $EUID -ne 0 ]]; then
-  echo -e "\033[0;31m[!] Please run as root (sudo).\033[0m"
-  exit 1
-fi
-
 # === Logging ===
 LOGFILE="$HOME/multi_installer.log"
 # Progress bar function
@@ -126,8 +23,8 @@ progress() {
 }
 
 # Log only echos, suppress command output
-exec > >(awk '/^\033/ {print;fflush();}' | tee -a "$LOGFILE") 2>&1
-set -e
+#exec > >(awk '/^\033/ {print;fflush();}' | tee -a "$LOGFILE") 2>&1
+#set -e
 echo -e " 
 made by
  _                   __        __    _  __
@@ -188,7 +85,6 @@ declare -A go_tools=(
   [kxss]="github.com/Emoe/kxss@latest"
   [subzy]="github.com/PentestPad/subzy@latest"
   [shortscan]="github.com/bitquark/shortscan/cmd/shortscan@latest"
-  [naabu]="github.com/projectdiscovery/naabu/v2/cmd/naabu@latest"
 )
 
 echo -e "${yellow}Installing Go-based tools...${reset}"
@@ -197,6 +93,8 @@ for tool in "${!go_tools[@]}"; do
   go install -v "${go_tools[$tool]}"
   sudo mv -f "$GOBIN/$tool" /usr/bin/
 done
+
+# REPAIR FROM HERE!!
 
 #Trufflehog
 echo -e "${green}Installing Trufflehog...${reset}"
