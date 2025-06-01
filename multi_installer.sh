@@ -129,6 +129,7 @@ progress() {
 exec > >(awk '/^\033/ {print;fflush();}' | tee -a "$LOGFILE") 2>&1
 set -e
 echo -e " 
+made by
  _                   __        __    _  __
 | |    ___  _ __   __\ \      / /__ | |/ _|
 | |   / _ \| '_ \ / _ \ \ /\ / / _ \| | |_
@@ -163,9 +164,10 @@ export PATH="$PATH:$GOBIN"
 echo -e "${green}Installing Nmap...${reset}"
 sudo apt install -y nmap
 
-echo "Installing npm..."
+echo -e "${green}Installing npm...${reset}"
 sudo apt install npm nodejs
 
+echo -e "${green}Installing broken-link-checker...${reset}"
 npm install broken-link-checker -g
 
 # === Go Tools Installation ===
@@ -185,7 +187,8 @@ declare -A go_tools=(
   [dalfox]="github.com/hahwul/dalfox/v2@latest"
   [kxss]="github.com/Emoe/kxss@latest"
   [subzy]="github.com/PentestPad/subzy@latest"
-  [shortscan]="go install github.com/bitquark/shortscan/cmd/shortscan@latest"
+  [shortscan]="github.com/bitquark/shortscan/cmd/shortscan@latest"
+  [naabu]="github.com/projectdiscovery/naabu/v2/cmd/naabu@latest"
 )
 
 echo -e "${yellow}Installing Go-based tools...${reset}"
@@ -196,26 +199,27 @@ for tool in "${!go_tools[@]}"; do
 done
 
 #Trufflehog
-echo "Installing Trufflehog..."
+echo -e "${green}Installing Trufflehog...${reset}"
 git clone https://github.com/trufflesecurity/trufflehog.git "$TOOLS_DIR"
 cd "$TOOLS_DIR/trufflehog"; go install
+cd ~
 
-echo "Installing gf..."
+echo -e "${green}Installing gf...${reset}"
 go install github.com/tomnomnom/gf@latest
 mkdir -p ~/.gf
 
-echo "Downloading gf patterns..."
+echo -e "${green}Downloading gf patterns...${reset}"
 git clone https://github.com/1ndianl33t/Gf-Patterns.git "$WORDLIST_DIR/gf-patterns"
 cp "$WORLDLIST_DIR/gf-patterns"/*.json ~/.gif/
 
-echo "Setting up gf bash completions..."
+echo -e "${green}Setting up gf bash completions...${reset}"
 echo 'source ~/.gf/gf-completions.bash' >> ~/.bashrc
 source ~/.bashrc
 
 # === Python-based Tools ===
 
 #XSStrike
-echo "Installing XSStrike in a virtual environment..."
+echo -e "${green}Installing XSStrike in a virtual environment...${reset}"
 git clone https://github.com/s0md3v/XSStrike.git "$TOOL_DIR/xsstrike"
 cd $TOOL_DIR/xsstrike/XSStrike
 python3 -m venv ~/$PYTHON_VENV/xsstrike
@@ -225,18 +229,27 @@ deactivate
 cd ~
 
 #WaafW00f
-echo "Installing waafw00f in a virtual environment..."
+echo -e "${green}Installing waafw00f in a virtual environment...${reset}"
 git clone https://github.com/EnableSecurity/wafw00f.git "$TOOL_DIR"
-cd $TOOL_DIR/wafw00f/
+cd $TOOL_DIR/wafw00f
 python3 -m venv ~/$PYTHON_VENV/wafw00f
 source ~/$PYTHON_VENV/wafw00f/bin/activate
 pip3 install wafw00f
 deactivate
 cd ~
 
+#Ghauri
+echo -e "${green}Installing Ghauri in a virtual environment...${reset}"
+git clone https://github.com/r0oth3x49/ghauri.git "$TOOL_DIR"
+cd $TOOL_DIR/ghauri
+python3 -m venv ~/$PYTHON_VENV/ghauri
+source ~/$PYTHON_VENV/ghauri/bin/activate
+python3 setup.py install
+deactivate
+cd ~
 
 #CSRF Scanner
-echo "Downloading CSRF Scanner (Bolt)..."
+echo -e "${green}Downloading CSRF Scanner (Bolt)...${reset}"
 git clone https://github.com/s0md3v/Bolt "$TOOL_DIR/CSRFScan"
 cd $TOOL_DIR/CSRFScan/Bolt
 python3 -m venv ~/$PYTHON_VENV/csrfscan
@@ -246,7 +259,7 @@ deactivate
 cd ~
 
 #SSRFmap
-echo "Downloading SSRFmap..."
+echo -e "${green}Downloading SSRFmap...${reset}"
 git clone https://github.com/swisskyrepo/SSRFmap.git "$TOOL_DIR/SSRFmap"
 cd $TOOL_DIR/SSRFmap/SSRFmap
 python3 -m venv ~/$PYTHON_VENV/ssrfmap
@@ -256,7 +269,7 @@ deactivate
 cd ~
 
 #Wapiti
-echo ""Downloading Wapiti..."
+echo -e "${green}Downloading Wapiti...${reset}"
 git clone https://github.com/wapiti-scanner/wapiti.git $TOOL_DIR/
 cd $TOOL_DIR/wapiti_scanner
 python3 -m venv ~/$PYTHON_VENV/wapiti
@@ -267,7 +280,7 @@ cd ~
 
 
 #Dirsearch
-echo "Installing dirsearch in a virtual environment..."
+echo -e "${green}Installing dirsearch in a virtual environment...${reset}"
 git clone https://github.com/maurosoria/dirsearch.git "$TOOL_DIR/dirsearch"
 cd $TOOL_DIR/dirsearch/dirsearch
 python3 -m venv ~/$PYTHON_VENV/dirsearch
@@ -280,7 +293,7 @@ find "$TOOLS_DIR/dirsearch" -type d -name "__pycache__" -exec rm -rf {} +
 rm -rf "$TOOLS_DIR/dirsearch/.git"
 
 #theHarvester
-echo "Installing theHarvester in a virtual environment..."
+echo -e "${green}Installing theHarvester in a virtual environment...${reset}"
 git clone https://github.com/laramies/theHarvester.git "$TOOL_DIR/theHarvester"
 cd "$TOOL_DIR/theHarvester"
 
@@ -333,23 +346,23 @@ fi
 # === Wordlists ===
 
 # SecLists ===
-echo "Downloading Seclists..."
+echo -e "${yellow}Downloading Seclists...${reset}"
 git clone https://github.com/danielmiessler/SecLists.git "$TOOL_DIR/wordlists/seclists"
 
 #FuzzDB
-echo "Downloading FuzzDB..."
+echo -e "${yellow}Downloading FuzzDB...${reset}"
 git clone https://github.com/fuzzdb-project/fuzzdb.git "$TOOL_DIR/wordlists/FuzzDB"
 
 #Portable-Wordlists
-echo "Downloading PayloadsAlltheThings..."
+echo -e "${yellow}Downloading PayloadsAlltheThings...${reset}"
 git clone https://github.com/swisskyrepo/PayloadsAllTheThings.git "$TOOL_DIR/wordlists/PayloadsAllTheThings"
 
 #Dirbuster Wordlist
-echo "Downloading dirbuster wordlist"
+echo -e "${yellow}Downloading dirbuster wordlist...${reset}"
 git clone https://github.com/digination/dirbuster-ng/tree/master/wordlists "$TOOL_DIR/wordlists/dirb"
 
 #OneForAll
-echo "Downloading OneForAll wordlist..."
+echo -e "${yellow}Downloading OneForAll wordlist...${reset}"
 git clone https://github.com/six2dez/OneListForAll "$TOOL_DIR/wordlists/oneforall"
 
 # === Final Output ===
