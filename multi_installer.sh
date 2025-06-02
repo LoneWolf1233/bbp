@@ -2,7 +2,7 @@
 # === multi_installer.sh - Automated installer for security tools and wordlists ===
 # Usage: bash multi_installer.sh [--install|--uninstall|--help]
 # Author: Lone Wolf
-# Last updated: [30-5-2025]
+# Last updated: [1-5-2025]
 
 # === Logging ===
 LOGFILE="$HOME/multi_installer.log"
@@ -41,8 +41,8 @@ red='\033[0;31m'
 reset='\033[0m'
 
 # === Setup ===
-TOOLS_DIR=~/tools
-PYTHON_VENV=~/Python-Environments
+TOOLS_DIR=$HOME/tools
+PYTHON_VENV=$HOME/Python-Environments
 export WORDLIST_DIR="$TOOL_DIR/wordlists"
 GOBIN=$(go env GOPATH)/bin
 mkdir -p "$WORDLIST_DIR"
@@ -94,25 +94,28 @@ for tool in "${!go_tools[@]}"; do
   sudo mv -f "$GOBIN/$tool" /usr/bin/
 done
 
-# REPAIR FROM HERE!!
+
 
 #Trufflehog
 echo -e "${green}Installing Trufflehog...${reset}"
 git clone https://github.com/trufflesecurity/trufflehog.git "$TOOLS_DIR"
-cd "$TOOLS_DIR/trufflehog"; go install
-cd ~
+cd "$TOOLS_DIR/"; go install
+sudo mv -f "$GOBIN/trufflehog" /usr/bin/
+cd $HOME
 
+
+# REPAIR FROM HERE!!
 echo -e "${green}Installing gf...${reset}"
 go install github.com/tomnomnom/gf@latest
-mkdir -p ~/.gf
+mkdir -p $HOME/.gf
 
 echo -e "${green}Downloading gf patterns...${reset}"
 git clone https://github.com/1ndianl33t/Gf-Patterns.git "$WORDLIST_DIR/gf-patterns"
-cp "$WORLDLIST_DIR/gf-patterns"/*.json ~/.gif/
+cp "$WORLDLIST_DIR/gf-patterns"/*.json $HOME/.gif/
 
 echo -e "${green}Setting up gf bash completions...${reset}"
-echo 'source ~/.gf/gf-completions.bash' >> ~/.bashrc
-source ~/.bashrc
+echo 'source $HOME/.gf/gf-completions.bash' >> $HOME/.bashrc
+source $HOME/.bashrc
 
 # === Python-based Tools ===
 
@@ -120,72 +123,72 @@ source ~/.bashrc
 echo -e "${green}Installing XSStrike in a virtual environment...${reset}"
 git clone https://github.com/s0md3v/XSStrike.git "$TOOL_DIR/xsstrike"
 cd $TOOL_DIR/xsstrike/XSStrike
-python3 -m venv ~/$PYTHON_VENV/xsstrike
-source ~/$PYTHON_VENV/xsstrike/bin/activate
+python3 -m venv $HOME/$PYTHON_VENV/xsstrike
+source $HOME/$PYTHON_VENV/xsstrike/bin/activate
 pip install -r requirements.txt
 deactivate
-cd ~
+cd $HOME
 
 #WaafW00f
 echo -e "${green}Installing waafw00f in a virtual environment...${reset}"
 git clone https://github.com/EnableSecurity/wafw00f.git "$TOOL_DIR"
 cd $TOOL_DIR/wafw00f
-python3 -m venv ~/$PYTHON_VENV/wafw00f
-source ~/$PYTHON_VENV/wafw00f/bin/activate
+python3 -m venv $HOME/$PYTHON_VENV/wafw00f
+source $HOME/$PYTHON_VENV/wafw00f/bin/activate
 pip3 install wafw00f
 deactivate
-cd ~
+cd $HOME
 
 #Ghauri
 echo -e "${green}Installing Ghauri in a virtual environment...${reset}"
 git clone https://github.com/r0oth3x49/ghauri.git "$TOOL_DIR"
 cd $TOOL_DIR/ghauri
-python3 -m venv ~/$PYTHON_VENV/ghauri
-source ~/$PYTHON_VENV/ghauri/bin/activate
+python3 -m venv $HOME/$PYTHON_VENV/ghauri
+source $HOME/$PYTHON_VENV/ghauri/bin/activate
 python3 setup.py install
 deactivate
-cd ~
+cd $HOME
 
 #CSRF Scanner
 echo -e "${green}Downloading CSRF Scanner (Bolt)...${reset}"
 git clone https://github.com/s0md3v/Bolt "$TOOL_DIR/CSRFScan"
 cd $TOOL_DIR/CSRFScan/Bolt
-python3 -m venv ~/$PYTHON_VENV/csrfscan
-source ~/$PYTHON_VENV/csrfscan/bin/activate
+python3 -m venv $HOME/$PYTHON_VENV/csrfscan
+source $HOME/$PYTHON_VENV/csrfscan/bin/activate
 pip install -r requirements.txt
 deactivate
-cd ~
+cd $HOME
 
 #SSRFmap
 echo -e "${green}Downloading SSRFmap...${reset}"
 git clone https://github.com/swisskyrepo/SSRFmap.git "$TOOL_DIR/SSRFmap"
 cd $TOOL_DIR/SSRFmap/SSRFmap
-python3 -m venv ~/$PYTHON_VENV/ssrfmap
-source ~/$PYTHON_VENV/ssrfmap/bin/activate
+python3 -m venv $HOME/$PYTHON_VENV/ssrfmap
+source $HOME/$PYTHON_VENV/ssrfmap/bin/activate
 pip install -r requirements.txt
 deactivate
-cd ~
+cd $HOME
 
 #Wapiti
 echo -e "${green}Downloading Wapiti...${reset}"
 git clone https://github.com/wapiti-scanner/wapiti.git $TOOL_DIR/
 cd $TOOL_DIR/wapiti_scanner
-python3 -m venv ~/$PYTHON_VENV/wapiti
-source ~/$PYTHON_VENV/wapiti/bin/activate
+python3 -m venv $HOME/$PYTHON_VENV/wapiti
+source $HOME/$PYTHON_VENV/wapiti/bin/activate
 pip install .
 deactivate
-cd ~
+cd $HOME
 
 
 #Dirsearch
 echo -e "${green}Installing dirsearch in a virtual environment...${reset}"
 git clone https://github.com/maurosoria/dirsearch.git "$TOOL_DIR/dirsearch"
 cd $TOOL_DIR/dirsearch/dirsearch
-python3 -m venv ~/$PYTHON_VENV/dirsearch
-source ~/$PYTHON_VENV/dirsearch/bin/activate
+python3 -m venv $HOME/$PYTHON_VENV/dirsearch
+source $HOME/$PYTHON_VENV/dirsearch/bin/activate
 pip install -r requirements.txt
 deactivate
-cd ~
+cd $HOME
 # Clean up: remove __pycache__ and .git folders to save space
 find "$TOOLS_DIR/dirsearch" -type d -name "__pycache__" -exec rm -rf {} +
 rm -rf "$TOOLS_DIR/dirsearch/.git"
@@ -203,7 +206,7 @@ pip install -r requirements/base.txt
 pip install -r requirements/dev.txt 2>/dev/null || true
 
 deactivate
-cd ~
+cd $HOME
 
 
 # Paramspider
@@ -219,7 +222,7 @@ fi
 echo -e "${yellow}Downloading SQLmap...${reset}"
 if [ ! -d "$TOOLS_DIR/sqlmap" ]; then
   git clone https://github.com/sqlmapproject/sqlmap "$TOOLS_DIR/sqlmap"
-  echo 'alias sqlmap="python3 ~/tools/sqlmap/sqlmap.py"' >> ~/.bashrc
+  echo 'alias sqlmap="python3 $HOME/tools/sqlmap/sqlmap.py"' >> $HOME/.bashrc
 else
   echo -e "${red}SQLmap already exists, skipping...${reset}"
 fi
@@ -236,7 +239,7 @@ pipx install uro || echo -e "${red}Uro may already be installed.${reset}"
 echo -e "${yellow}Installing Nikto...${reset}"
 if [ ! -d "$TOOLS_DIR/nikto" ]; then
   git clone https://github.com/sullo/nikto "$TOOLS_DIR/nikto"
-  echo 'alias nikto="perl ~/tools/nikto/program/nikto.pl"' >> ~/.bashrc
+  echo 'alias nikto="perl $HOME/tools/nikto/program/nikto.pl"' >> $HOME/.bashrc
 else
   echo -e "${red}Nikto already exists, skipping...${reset}"
 fi
@@ -265,4 +268,4 @@ git clone https://github.com/six2dez/OneListForAll "$TOOL_DIR/wordlists/oneforal
 
 # === Final Output ===
 echo -e "${green}All tools installed successfully!${reset}"
-echo -e "${yellow}Run 'source ~/.bashrc' or restart your terminal to use the aliases.${reset}"
+echo -e "${yellow}Run 'source $HOME/.bashrc' or restart your terminal to use the aliases.${reset}"
