@@ -43,7 +43,7 @@ reset='\033[0m'
 # === Setup ===
 TOOLS_DIR=$HOME/tools
 PYTHON_VENV=$HOME/Python-Environments
-export WORDLIST_DIR="$TOOL_DIR/wordlists"
+export WORDLIST_DIR="$TOOLS_DIR/wordlists"
 GOBIN=$(go env GOPATH)/bin
 mkdir -p "$WORDLIST_DIR"
 mkdir -p "$TOOLS_DIR"
@@ -94,6 +94,11 @@ for tool in "${!go_tools[@]}"; do
   sudo mv -f "$GOBIN/$tool" /usr/bin/
 done
 
+echo -e "${yellow}Installing CRLF Fuzz...${reset}"
+git clone https://github.com/dwisiswant0/crlfuzz "$TOOLS_DIR"
+cd "$TOOLS_DIR/"; go install
+sudo mv -f "$GOBIN/crlfuzz" /usr/bin/
+cd $HOME
 
 
 #Trufflehog
@@ -104,7 +109,8 @@ sudo mv -f "$GOBIN/trufflehog" /usr/bin/
 cd $HOME
 
 
-# REPAIR FROM HERE!!
+
+
 echo -e "${green}Installing gf...${reset}"
 go install github.com/tomnomnom/gf@latest
 mkdir -p $HOME/.gf
@@ -121,60 +127,61 @@ source $HOME/.bashrc
 
 #XSStrike
 echo -e "${green}Installing XSStrike in a virtual environment...${reset}"
-git clone https://github.com/s0md3v/XSStrike.git "$TOOL_DIR/xsstrike"
-cd $TOOL_DIR/xsstrike/XSStrike
-python3 -m venv $HOME/$PYTHON_VENV/xsstrike
-source $HOME/$PYTHON_VENV/xsstrike/bin/activate
-pip install -r requirements.txt
-deactivate
+git clone https://github.com/s0md3v/XSStrike.git "$TOOLS_DIR/xsstrike"
+python3 -m venv $PYTHON_VENV/xsstrike
+source $PYTHON_VENV/xsstrike/bin/activate
+pip install -r $TOOLS_DIR/xsstrike/requirements.txt
 cd $HOME
+deactivate
+
 
 #WaafW00f
 echo -e "${green}Installing waafw00f in a virtual environment...${reset}"
-git clone https://github.com/EnableSecurity/wafw00f.git "$TOOL_DIR"
-cd $TOOL_DIR/wafw00f
-python3 -m venv $HOME/$PYTHON_VENV/wafw00f
-source $HOME/$PYTHON_VENV/wafw00f/bin/activate
+git clone https://github.com/EnableSecurity/wafw00f.git "$TOOLS_DIR/wafw00f"
+python3 -m venv $PYTHON_VENV/wafw00f
+source $PYTHON_VENV/wafw00f/bin/activate
 pip3 install wafw00f
-deactivate
 cd $HOME
+deactivate
 
-#Ghauri
+
+#Ghauri (NEEDS MORE TESTING THOUGH INSTALLATION SEEMS TO BE FUNCTIONING)
 echo -e "${green}Installing Ghauri in a virtual environment...${reset}"
-git clone https://github.com/r0oth3x49/ghauri.git "$TOOL_DIR"
-cd $TOOL_DIR/ghauri
-python3 -m venv $HOME/$PYTHON_VENV/ghauri
-source $HOME/$PYTHON_VENV/ghauri/bin/activate
-python3 setup.py install
+git clone https://github.com/r0oth3x49/ghauri.git "$TOOLS_DIR/ghauri"
+python3 -m venv $PYTHON_VENV/ghauri
+source $PYTHON_VENV/ghauri/bin/activate
+pip install setuptools
+python3 $TOOLS_DIR/ghauri/setup.py install
 deactivate
-cd $HOME
+cd $HOME    
+
 
 #CSRF Scanner
 echo -e "${green}Downloading CSRF Scanner (Bolt)...${reset}"
-git clone https://github.com/s0md3v/Bolt "$TOOL_DIR/CSRFScan"
-cd $TOOL_DIR/CSRFScan/Bolt
-python3 -m venv $HOME/$PYTHON_VENV/csrfscan
-source $HOME/$PYTHON_VENV/csrfscan/bin/activate
-pip install -r requirements.txt
+git clone https://github.com/s0md3v/Bolt "$TOOLS_DIR/csrfscan"
+cd $TOOLS_DIR/csrfscan/Bolt
+python3 -m venv $PYTHON_VENV/csrfscan
+source $PYTHON_VENV/csrfscan/bin/activate
+pip install -r $TOOLS_DIR/csrfscan/Bolt/requirements.txt
 deactivate
 cd $HOME
 
 #SSRFmap
 echo -e "${green}Downloading SSRFmap...${reset}"
-git clone https://github.com/swisskyrepo/SSRFmap.git "$TOOL_DIR/SSRFmap"
-cd $TOOL_DIR/SSRFmap/SSRFmap
-python3 -m venv $HOME/$PYTHON_VENV/ssrfmap
-source $HOME/$PYTHON_VENV/ssrfmap/bin/activate
-pip install -r requirements.txt
+git clone https://github.com/swisskyrepo/SSRFmap.git "$TOOLS_DIR/SSRFmap"
+cd $TOOLS_DIR/SSRFmap/SSRFmap
+python3 -m venv $PYTHON_VENV/ssrfmap
+source $PYTHON_VENV/ssrfmap/bin/activate
+pip install -r $TOOLS_DIR/ssrfmap/requirements.txt
 deactivate
 cd $HOME
 
 #Wapiti
 echo -e "${green}Downloading Wapiti...${reset}"
-git clone https://github.com/wapiti-scanner/wapiti.git $TOOL_DIR/
-cd $TOOL_DIR/wapiti_scanner
-python3 -m venv $HOME/$PYTHON_VENV/wapiti
-source $HOME/$PYTHON_VENV/wapiti/bin/activate
+git clone https://github.com/wapiti-scanner/wapiti.git $TOOLS_DIR/wapiti
+cd $TOOLS_DIR/wapiti_scanner
+python3 -m venv $PYTHON_VENV/wapiti
+source $PYTHON_VENV/wapiti/bin/activate
 pip install .
 deactivate
 cd $HOME
@@ -182,21 +189,22 @@ cd $HOME
 
 #Dirsearch
 echo -e "${green}Installing dirsearch in a virtual environment...${reset}"
-git clone https://github.com/maurosoria/dirsearch.git "$TOOL_DIR/dirsearch"
-cd $TOOL_DIR/dirsearch/dirsearch
-python3 -m venv $HOME/$PYTHON_VENV/dirsearch
-source $HOME/$PYTHON_VENV/dirsearch/bin/activate
-pip install -r requirements.txt
+git clone https://github.com/maurosoria/dirsearch.git "$TOOLS_DIR/dirsearch"
+cd $TOOLS_DIR/dirsearch/
+python3 -m venv $PYTHON_VENV/dirsearch
+source $PYTHON_VENV/dirsearch/bin/activate
+pip install -r $TOOLS_DIR/dirsearch/requirements.txt
 deactivate
 cd $HOME
+
 # Clean up: remove __pycache__ and .git folders to save space
 find "$TOOLS_DIR/dirsearch" -type d -name "__pycache__" -exec rm -rf {} +
 rm -rf "$TOOLS_DIR/dirsearch/.git"
 
 #theHarvester
 echo -e "${green}Installing theHarvester in a virtual environment...${reset}"
-git clone https://github.com/laramies/theHarvester.git "$TOOL_DIR/theHarvester"
-cd "$TOOL_DIR/theHarvester"
+git clone https://github.com/laramies/theHarvester.git "$TOOLS_DIR/theHarvester"
+cd "$TOOLS_DIR/theHarvester"
 
 python3 -m venv "$PYTHON_VENV/theHarvester"
 source "$PYTHON_VENV/theHarvester/bin/activate"
