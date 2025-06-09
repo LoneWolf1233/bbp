@@ -159,27 +159,25 @@ cd $HOME
 #CSRF Scanner
 echo -e "${green}Downloading CSRF Scanner (Bolt)...${reset}"
 git clone https://github.com/s0md3v/Bolt "$TOOLS_DIR/csrfscan"
-cd $TOOLS_DIR/csrfscan/Bolt
 python3 -m venv $PYTHON_VENV/csrfscan
 source $PYTHON_VENV/csrfscan/bin/activate
-pip install -r $TOOLS_DIR/csrfscan/Bolt/requirements.txt
+pip install -r $TOOLS_DIR/csrfscan/requirements.txt
 deactivate
 cd $HOME
 
 #SSRFmap
 echo -e "${green}Downloading SSRFmap...${reset}"
 git clone https://github.com/swisskyrepo/SSRFmap.git "$TOOLS_DIR/SSRFmap"
-cd $TOOLS_DIR/SSRFmap/SSRFmap
 python3 -m venv $PYTHON_VENV/ssrfmap
 source $PYTHON_VENV/ssrfmap/bin/activate
-pip install -r $TOOLS_DIR/ssrfmap/requirements.txt
+pip install -r $TOOLS_DIR/SSRFmap/requirements.txt
 deactivate
 cd $HOME
 
+#TO TEST LATER
 #Wapiti
 echo -e "${green}Downloading Wapiti...${reset}"
 git clone https://github.com/wapiti-scanner/wapiti.git $TOOLS_DIR/wapiti
-cd $TOOLS_DIR/wapiti_scanner
 python3 -m venv $PYTHON_VENV/wapiti
 source $PYTHON_VENV/wapiti/bin/activate
 pip install .
@@ -190,7 +188,6 @@ cd $HOME
 #Dirsearch
 echo -e "${green}Installing dirsearch in a virtual environment...${reset}"
 git clone https://github.com/maurosoria/dirsearch.git "$TOOLS_DIR/dirsearch"
-cd $TOOLS_DIR/dirsearch/
 python3 -m venv $PYTHON_VENV/dirsearch
 source $PYTHON_VENV/dirsearch/bin/activate
 pip install -r $TOOLS_DIR/dirsearch/requirements.txt
@@ -201,20 +198,6 @@ cd $HOME
 find "$TOOLS_DIR/dirsearch" -type d -name "__pycache__" -exec rm -rf {} +
 rm -rf "$TOOLS_DIR/dirsearch/.git"
 
-#theHarvester
-echo -e "${green}Installing theHarvester in a virtual environment...${reset}"
-git clone https://github.com/laramies/theHarvester.git "$TOOLS_DIR/theHarvester"
-cd "$TOOLS_DIR/theHarvester"
-
-python3 -m venv "$PYTHON_VENV/theHarvester"
-source "$PYTHON_VENV/theHarvester/bin/activate"
-
-pip install --upgrade pip setuptools
-pip install -r requirements/base.txt
-pip install -r requirements/dev.txt 2>/dev/null || true
-
-deactivate
-cd $HOME
 
 
 # Paramspider
