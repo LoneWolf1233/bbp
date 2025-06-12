@@ -2,7 +2,7 @@
 # === multi_installer.sh - Automated installer for security tools and wordlists ===
 # Usage: bash multi_installer.sh [--install|--uninstall|--help]
 # Author: Lone Wolf
-# Last updated: [1-5-2025]
+# Last updated: [9-5-2025]
 
 # === Logging ===
 LOGFILE="$HOME/multi_installer.log"
@@ -180,7 +180,7 @@ echo -e "${green}Downloading Wapiti...${reset}"
 git clone https://github.com/wapiti-scanner/wapiti.git $TOOLS_DIR/wapiti
 python3 -m venv $PYTHON_VENV/wapiti
 source $PYTHON_VENV/wapiti/bin/activate
-pip install .
+pip install $TOOLS_DIR/wapiti
 deactivate
 cd $HOME
 
@@ -191,6 +191,7 @@ git clone https://github.com/maurosoria/dirsearch.git "$TOOLS_DIR/dirsearch"
 python3 -m venv $PYTHON_VENV/dirsearch
 source $PYTHON_VENV/dirsearch/bin/activate
 pip install -r $TOOLS_DIR/dirsearch/requirements.txt
+python3 setup.py install
 deactivate
 cd $HOME
 

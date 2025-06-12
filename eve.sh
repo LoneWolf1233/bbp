@@ -1,10 +1,10 @@
 #!/bin/bash
 
-PYTHON_VENV=~/Python-Environments
-TOOL_DIR=~/tools
+PYTHON_VENV=$HOME/Python-Environments
+TOOL_DIR=$HOME/tools
+WORDLIST_DIR="$TOOLS_DIR/wordlists"
 
-
-OUTPUT=~/recon
+OUTPUT=$HOME/recon
 mkdir -p "$OUTPUT"
 
 read -p "Enter domain or URL: " DOMAIN
@@ -29,8 +29,43 @@ echo "[+] Probing for alive domains..."
 httpx -l "$DOMAIN_DIR/subdomains_$TIMESTAMP.txt" -sc -td -ip -o "$DOMAIN_DIR/alive_$TIMESTAMP.txt" > /dev/null 2>&1
 awk '{print $1}' > "$DOMAIN_DIR/filtered_domains_$TIMESTAMP.txt"
 
+echo "[+] Spidering alive domains 1/3..."
+cat "$DOMAIN_DIR/filtered_domains_$TIMESTAMP.txt" | gau > "$DOMAIN_DIR/gausubs_$TIMESTAMP.txt"
+
+echo "[+] Spidering alive domains 2/3..."
+cat "$DOMAIN_DIR/filtered_domains_$TIMESTAMP.txt" | waybackurls > "$DOMAIN_DIR/waybacksubs_$TIMESTAMP.txt"
+
+echo "[+] Spidering alive domains 3/3..."
+katana -u "$DOMAIN_DIR/filtered_domains_$TIMESTAMP.txt" -d 5 -kf -jc -fx -ef woff,css,png,svg,jpg,woff2,jpeg,gif,svg -o "$DOMAIN_DIR/katana_subs_$TIMESTAMP.txt"
+
+echo "[+] Combining spidered URLS..."
+cat "$DOMAIN_DIR/gausubs_$TIMESTAMP.txt" "$DOMAIN_DIR/waybacksubs_$TIMESTAMP.txt" "$DOMAIN_DIR/katana_subs_$TIMESTAMP.txt" | sort -u | tee "$DOMAIN_DIR/allurls_$TIMESTAMP.txt"
+
+echo "[+] Extracting js files..."
+cat "$DOMAIN_DIR/allurls_$TIMESTAMP.txt" | grep -E "\.js$" >> "$DOMAIN_DIR/js_$TIMESTAMP.txt"
+
+echo "[+] Filtering alive js files..."
+cat "$DOMAIN_DIR/js_$TIMESTAMP.txt" | httpx -mc 200 -o "$DOMAIN_DIR/js_alive_$TIMESTAMP.txt"
+
+echo "[+] Scanning for sensitive info..."
+nuclei -l "$DOMAIN_DIR/js_alive_$TIMESTAMP.txt" -t "$HOME/nuclei-templates/http/exposures" -o "$DOMAIN_DIR/potential_secrets_$TIMESTAMP.txt"
+
 echo "[+] Filtering 403s for fuzzing..."
-grep -v " 403 " "$DOMAIN_DIR/alive_$TIMESTAMP.txt" | awk '{print $1}' > $DOMAIN_DIR/fuzz_targets.txt
+grep -v " 403 " "$DOMAIN_DIR/alive_$TIMESTAMP.txt" | awk '{print $1}' > "$DOMAIN_DIR/fuzz_targets_$TIMESTAMP.txt"
+
+echo "[+] FUZZING 403 subdomains..."
+source $PYTHON_VENV/dirsearch/bin/activate
+for SUB in "$DOMAIN_DIR/fuzz_targets_$TIMESTAMP.txt"
+do
+    echo "FUZZING $SUB..."
+    python3 dirsearch -u $SUB -w $TOOLS_DIR/wordlists/seclists/Discovery/Web-Content/directory-list-2.3-big.txt -x 403,301,429,302,404,500,501,502,503
+done
+deactivate
+
+echo "Collecting parameters..."
+arjun -l "$DOMAIN_DIR/subdomains_$TIMESTAMP.txt" > "$DOMAIN_DIR/arjun-param_$TIMESTAMP.txt"
+paramspider -l "$DOMAIN_DIR/subdomains_$TIMESTAMP.txt" 
+mv results $DOMAIN_DIR/
 
 echo "[+] Extracting IPs for port scanning..."
 grep -oP '\[\K[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' "$DOMAIN_DIR/alive_$TIMESTAMP.txt" | sort -u > "$DOMAIN_DIR/ip_targets.txt"
@@ -43,6 +78,13 @@ grep -i "iis" "$DOMAIN_DIR/alive_$TIMESTAMP.txt" | awk '{print $1}' > "$DOMAIN_D
 IIS_COUNT=$(wc -l < "$DOMAIN_DIR/iis_hosts_$TIMESTAMP.txt")
 echo "[+] Found $IIS_COUNT IIS hosts. Saved to $DOMAIN_DIR/iis_hosts_$TIMESTAMP.txt"
 
+echo "[+] Attacking IIS URS in iis_hosts_$TIMESTAMP.txt with shortscan"
+for SUB in "$DOMAIN_DIR/iis_hosts_$TIMESTAMP.txt"
+do
+    echo "Starting attack on $SUB"
+    shortscan $SUB
+done
+
 echo "[+] Performing basic vulnerability scanning 1/2..."
 for SUB in "$DOMAIN_DIR/subdomains_$TIMESTAMP.txt"
 do
@@ -53,9 +95,14 @@ done
 echo '[+] Performing basic vulnerability scanning 2/2...'
 nuclei -l $DOMAIN_DIR/subdomains_$TIMESTAMP.txt -o "$DOMAIN_DIR/nuclei_results_$TIMESTAMP.txt"
 
-echo "[+] Scanning for subdomain takeover 1/2..."
-subzy run --targets $DOMAIN_DIR/filtered_domains_$TIMESTAMP.txt --verify_ssl --hide_fails | tee subzy_$TIMESTAMP.txt
+echo "[+] Scanning for subdomain takeover 1/3..."
+subzy run --targets "$DOMAIN_DIR/filtered_domains_$TIMESTAMP.txt" --verify_ssl --hide_fails | tee "$DOMAIN_DIR/subzy_$TIMESTAMP.txt"
 
+echo "[+] Scanning for subdomain takeover 2/3..."
+cat "$DOMAIN_DIR/filtered_domains_$TIMESTAMP.txt" | dnsx -cname -ns -o "$DOMAIN_DIR/cnamenssub.txt"
+
+echo "[+] Scanning for subdomain takeover 3/3..."
+nuclei -l "$DOMAIN_DIR/filtered_domains_$TIMESTAMP.txt" -t takeover-detection -o "$DOMAIN_DIR/nuclei_takeover_$TIMESTAMP.txt"
 
 
 ALIVE_COUNT=$(wc -l < "$DOMAIN_DIR/alive_$TIMESTAMP.txt")
