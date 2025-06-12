@@ -47,8 +47,11 @@ cat "$DOMAIN_DIR/allurls_$TIMESTAMP.txt" | grep -E "\.js$" >> "$DOMAIN_DIR/js_$T
 echo "[+] Filtering alive js files..."
 cat "$DOMAIN_DIR/js_$TIMESTAMP.txt" | httpx -mc 200 -o "$DOMAIN_DIR/js_alive_$TIMESTAMP.txt"
 
-echo "[+] Scanning for sensitive info..."
+echo "[+] Scanning for sensitive info 1/2..."
 nuclei -l "$DOMAIN_DIR/js_alive_$TIMESTAMP.txt" -t "$HOME/nuclei-templates/http/exposures" -o "$DOMAIN_DIR/potential_secrets_$TIMESTAMP.txt"
+
+echo "[+] Scanning for sensitive info 2/2..."
+cat "$DOMAIN_DIR/allurls_$TIMESTAMP.txt" | grep -E "\.txt|\.log|\.cache|\.secret|\.db|\.backup|\.yml|\.json|\.gz|\.rar|\.zip|\.config" | tee "$DOMAIN_DIR/sensitive_file_extensions.txt"
 
 echo "[+] Filtering 403s for fuzzing..."
 grep -v " 403 " "$DOMAIN_DIR/alive_$TIMESTAMP.txt" | awk '{print $1}' > "$DOMAIN_DIR/fuzz_targets_$TIMESTAMP.txt"
@@ -81,7 +84,7 @@ echo "[+] Found $IIS_COUNT IIS hosts. Saved to $DOMAIN_DIR/iis_hosts_$TIMESTAMP.
 echo "[+] Attacking IIS URS in iis_hosts_$TIMESTAMP.txt with shortscan"
 for SUB in "$DOMAIN_DIR/iis_hosts_$TIMESTAMP.txt"
 do
-    echo "Starting attack on $SUB"
+    echo "[+]Starting attack on $SUB"
     shortscan $SUB
 done
 
