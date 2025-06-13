@@ -85,6 +85,9 @@ declare -A go_tools=(
   [kxss]="github.com/Emoe/kxss@latest"
   [subzy]="github.com/PentestPad/subzy@latest"
   [shortscan]="github.com/bitquark/shortscan/cmd/shortscan@latest"
+  [gxss]="github.com/KathanP19/Gxss@latest"
+  [kxss]="github.com/Emoe/kxss@latest"
+  [dalfox]="github.com/hahwul/dalfox/v2@latest"
 )
 
 echo -e "${yellow}Installing Go-based tools...${reset}"
