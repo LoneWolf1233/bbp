@@ -122,6 +122,7 @@ cat "$DOMAIN_DIR/allurls_$TIMESTAMP.txt" | grep -E "(login|signup|register|forgo
 echo "[+] Scanning for Cross Site Scripting 4/4..."
 cat "$DOMAIN_DIR/js_alive_$TIMESTAMP.txt" | Gxss -c 100 | sort -u | dalfox pipe -o "$DOMAIN_DIR/dom_xss_results.txt"
 
+echo "[+] Scanning for Local File Inclusion..."
 echo $DOMAIN | gau | gf lfi | uro | sed 's/=.*/=/' | qsreplace "FUZZ" | sort -u | xargs -I{} ffuf -u {} -w payloads/lfi.txt -c -mr "root:(x|\*|\$[^\:]*):0:0:" -v
 
 ALIVE_COUNT=$(wc -l < "$DOMAIN_DIR/alive_$TIMESTAMP.txt")
