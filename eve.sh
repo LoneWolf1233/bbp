@@ -3,7 +3,7 @@
 PYTHON_VENV=$HOME/Python-Environments
 TOOL_DIR=$HOME/tools
 WORDLIST_DIR="$TOOLS_DIR/wordlists"
-COLLABORATOR_LINK= #PLEASE ADD IT LATER...
+COLLABORATOR_LINK= #PLEASE ADD IT...
 OUTPUT=$HOME/recon
 mkdir -p "$OUTPUT"
 
@@ -28,6 +28,9 @@ echo "[+] Found $SUBDOMAIN_COUNT unique subdomains."
 echo "[+] Probing for alive domains..."
 httpx -l "$DOMAIN_DIR/subdomains_$TIMESTAMP.txt" -sc -td -ip -o "$DOMAIN_DIR/alive_$TIMESTAMP.txt" > /dev/null 2>&1
 awk '{print $1}' > "$DOMAIN_DIR/filtered_domains_$TIMESTAMP.txt"
+
+ALIVE_COUNT=$(wc -l < "$DOMAIN_DIR/alive_$TIMESTAMP.txt")
+echo "[+] Found $ALIVE_COUNT alive hosts"
 
 echo "[+] Spidering alive domains 1/3..."
 cat "$DOMAIN_DIR/filtered_domains_$TIMESTAMP.txt" | gau > "$DOMAIN_DIR/gausubs_$TIMESTAMP.txt"
@@ -123,9 +126,20 @@ echo "[+] Scanning for Cross Site Scripting 4/4..."
 cat "$DOMAIN_DIR/js_alive_$TIMESTAMP.txt" | Gxss -c 100 | sort -u | dalfox pipe -o "$DOMAIN_DIR/dom_xss_results.txt"
 
 echo "[+] Scanning for Local File Inclusion..."
-echo $DOMAIN | gau | gf lfi | uro | sed 's/=.*/=/' | qsreplace "FUZZ" | sort -u | xargs -I{} ffuf -u {} -w payloads/lfi.txt -c -mr "root:(x|\*|\$[^\:]*):0:0:" -v
+echo $DOMAIN | gau | gf lfi | uro | sed 's/=.*/=/' | qsreplace "FUZZ" | sort -u | xargs -I{} ffuf -u {} -w "$TOOLS_DIR/wordlists/payloads/lfi.txt" -c -mr "root:(x|\*|\$[^\:]*):0:0:" -v
 
-ALIVE_COUNT=$(wc -l < "$DOMAIN_DIR/alive_$TIMESTAMP.txt")
-echo "[+] Found $ALIVE_COUNT alive hosts"
+echo "[+] Scanning for CRLF injection..."
+crlfuzz -l "$DOMAIN_DIR/allurls_$TIMESTAMP.txt" | tee "$DOMAIN_DIR/crlf_results_$TIMESTAMP.txt"
+
+echo "[+] Scanning for CSRF..."
+echo "[+] Starting Python Virtual Environment for CSRF Scanner..."
+source "$PYTHON_VENV/csrfscan/bin/activate"
+python3 "$TOOLS_DIR/csrfscan/bolt.py" -u $DOMAIN -l 3 | tee "$DOMAIN_DIR/csrf_results_$TIMESTAMP.txt"
+
+echo "[+] Scanning for CORS..."
+echo "[+] Starting Python Virtual Environment for Corsy..."
+source "$PYTHON_VENV/corsy/bin/activate"
+python3 "$DOMAIN_DIR/allurls_$TIMESTAMP.txt" | tee "$DOMAIN_DIR/cors_results_$TIMESTAMP.txt"
+
 
 echo "[✓] Finished! Results in $DOMAIN_DIR"

@@ -147,21 +147,9 @@ pip3 install wafw00f
 cd $HOME
 deactivate
 
-
-#Ghauri (NEEDS MORE TESTING THOUGH INSTALLATION SEEMS TO BE FUNCTIONING)
-echo -e "${green}Installing Ghauri in a virtual environment...${reset}"
-git clone https://github.com/r0oth3x49/ghauri.git "$TOOLS_DIR/ghauri"
-python3 -m venv $PYTHON_VENV/ghauri
-source $PYTHON_VENV/ghauri/bin/activate
-pip install setuptools
-python3 $TOOLS_DIR/ghauri/setup.py install
-deactivate
-cd $HOME    
-
-
 #CSRF Scanner
 echo -e "${green}Downloading CSRF Scanner (Bolt)...${reset}"
-git clone https://github.com/s0md3v/Bolt "$TOOLS_DIR/csrfscan"
+git clone https://github.com/s0md3v/Bolt.git "$TOOLS_DIR/csrfscan"
 python3 -m venv $PYTHON_VENV/csrfscan
 source $PYTHON_VENV/csrfscan/bin/activate
 pip install -r $TOOLS_DIR/csrfscan/requirements.txt
@@ -222,6 +210,16 @@ else
   echo -e "${red}SQLmap already exists, skipping...${reset}"
 fi
 
+echo -e "${yellow}Downloading Corsy...${reset}"
+if [ ! -d "$TOOLS_DIR/Corsy" ]; then
+  git clone https://github.com/s0md3v/Corsy.git "$TOOLS_DIR/Corsy"
+  python3 -m venv $PYTHON_VENV/corsy
+  source $PYTHON_VENV/corsy/bin/activate
+  pip install -r $TOOLS_DIR/Corsy/requirements.txt
+  deactivate
+else
+  echo -e "${red}Corsy already exists, skipping...${reset}"
+
 # Arjun
 echo -e "${yellow}Installing Arjun...${reset}"
 pipx install arjun || echo -e "${red}Arjun may already be installed.${reset}"
@@ -243,23 +241,27 @@ fi
 
 # SecLists ===
 echo -e "${yellow}Downloading Seclists...${reset}"
-git clone https://github.com/danielmiessler/SecLists.git "$TOOL_DIR/wordlists/seclists"
+git clone https://github.com/danielmiessler/SecLists.git "$TOOLS_DIR/wordlists/seclists"
+
+#Payloads (LostSec)
+echo -e "${yellow}Downloading Payloads from LostSec..."
+git clone https://github.com/coffinxp/payloads.git "$TOOLS_DIR/wordlists/payloads"
 
 #FuzzDB
 echo -e "${yellow}Downloading FuzzDB...${reset}"
-git clone https://github.com/fuzzdb-project/fuzzdb.git "$TOOL_DIR/wordlists/FuzzDB"
+git clone https://github.com/fuzzdb-project/fuzzdb.git "$TOOLS_DIR/wordlists/FuzzDB"
 
 #Portable-Wordlists
 echo -e "${yellow}Downloading PayloadsAlltheThings...${reset}"
-git clone https://github.com/swisskyrepo/PayloadsAllTheThings.git "$TOOL_DIR/wordlists/PayloadsAllTheThings"
+git clone https://github.com/swisskyrepo/PayloadsAllTheThings.git "$TOOLS_DIR/wordlists/PayloadsAllTheThings"
 
 #Dirbuster Wordlist
 echo -e "${yellow}Downloading dirbuster wordlist...${reset}"
-git clone https://github.com/digination/dirbuster-ng/tree/master/wordlists "$TOOL_DIR/wordlists/dirb"
+git clone https://github.com/digination/dirbuster-ng/tree/master/wordlists "$TOOLS_DIR/wordlists/dirb"
 
 #OneForAll
 echo -e "${yellow}Downloading OneForAll wordlist...${reset}"
-git clone https://github.com/six2dez/OneListForAll "$TOOL_DIR/wordlists/oneforall"
+git clone https://github.com/six2dez/OneListForAll "$TOOLS_DIR/wordlists/oneforall"
 
 # === Final Output ===
 echo -e "${green}All tools installed successfully!${reset}"
