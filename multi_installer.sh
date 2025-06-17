@@ -1,38 +1,10 @@
 #!/bin/bash
-# === multi_installer.sh - Automated installer for security tools and wordlists ===
-# Usage: bash multi_installer.sh [--install|--uninstall|--help]
+# === multi_installer.sh - Cleaned Automated installer for security tools and wordlists ===
 # Author: Lone Wolf
-# Last updated: [9-5-2025]
+# Last updated: [17-6-2025]
 
 # === Logging ===
 LOGFILE="$HOME/multi_installer.log"
-# Progress bar function
-progress() {
-  local duration=$1
-  local message=$2
-  local i=0
-  tput civis
-  echo -ne "$message ["
-  while [ $i -lt $duration ]; do
-    echo -ne "#"
-    sleep 0.1
-    ((i++))
-  done
-  echo -e "] done."
-  tput cnorm
-}
-
-# Log only echos, suppress command output
-#exec > >(awk '/^\033/ {print;fflush();}' | tee -a "$LOGFILE") 2>&1
-#set -e
-echo -e " 
-made by
- _                   __        __    _  __
-| |    ___  _ __   __\ \      / /__ | |/ _|
-| |   / _ \| '_ \ / _ \ \ /\ / / _ \| | |_
-| |__| (_) | | | |  __/\ V  V / (_) | |  _|
-|_____\___/|_| |_|\___| \_/\_/ \___/|_|_|"
-
 
 # === Colors ===
 green='\033[0;32m'
@@ -45,29 +17,24 @@ TOOLS_DIR=$HOME/tools
 PYTHON_VENV=$HOME/Python-Environments
 export WORDLIST_DIR="$TOOLS_DIR/wordlists"
 GOBIN=$(go env GOPATH)/bin
-mkdir -p "$WORDLIST_DIR"
-mkdir -p "$TOOLS_DIR"
-mkdir -p "$PYTHON_VENV"
+export PATH="$PATH:$GOBIN"
 
+mkdir -p "$WORDLIST_DIR" "$TOOLS_DIR" "$PYTHON_VENV"
+
+# === Update System ===
 echo -e "${green}Updating and upgrading your OS...${reset}"
 sudo apt update -y && sudo apt upgrade -y
 
+# === Install Dependencies ===
 echo -e "${green}Installing dependencies...${reset}"
-sudo apt install -y python3 python3-pip pipx golang-go git wget unzip perl curl
-
+sudo apt install -y python3 python3-pip pipx golang-go git wget unzip perl curl nmap npm nodejs
 pipx ensurepath
-export PATH="$PATH:$GOBIN"
 
-echo -e "${green}Installing Nmap...${reset}"
-sudo apt install -y nmap
-
-echo -e "${green}Installing npm...${reset}"
-sudo apt install npm nodejs
-
+# === Install broken-link-checker ===
 echo -e "${green}Installing broken-link-checker...${reset}"
 npm install broken-link-checker -g
 
-# === Go Tools Installation ===
+# === Install Go Tools ===
 declare -A go_tools=(
   [assetfinder]="github.com/tomnomnom/assetfinder@latest"
   [gau]="github.com/lc/gau/v2/cmd/gau@latest"
@@ -85,184 +52,95 @@ declare -A go_tools=(
   [kxss]="github.com/Emoe/kxss@latest"
   [subzy]="github.com/PentestPad/subzy@latest"
   [shortscan]="github.com/bitquark/shortscan/cmd/shortscan@latest"
-  [gxss]="github.com/KathanP19/Gxss@latest"
-  [kxss]="github.com/Emoe/kxss@latest"
-  [dalfox]="github.com/hahwul/dalfox/v2@latest"
+  [Gxss]="github.com/KathanP19/Gxss@latest"
+  [crlfuzz]="github.com/dwisiswant0/crlfuzz/cmd/crlfuzz@latest"
 )
 
 echo -e "${yellow}Installing Go-based tools...${reset}"
 for tool in "${!go_tools[@]}"; do
   echo -e "${green}Installing $tool...${reset}"
   go install -v "${go_tools[$tool]}"
-  sudo mv -f "$GOBIN/$tool" /usr/bin/
+  sudo mv -f "$GOBIN/$tool" /usr/bin/ 2>/dev/null || true
 done
 
-echo -e "${yellow}Installing CRLF Fuzz...${reset}"
-git clone https://github.com/dwisiswant0/crlfuzz "$TOOLS_DIR"
-cd "$TOOLS_DIR/"; go install
-sudo mv -f "$GOBIN/crlfuzz" /usr/bin/
-cd $HOME
-
-
-#Trufflehog
+# === Trufflehog ===
 echo -e "${green}Installing Trufflehog...${reset}"
-git clone https://github.com/trufflesecurity/trufflehog.git "$TOOLS_DIR"
-cd "$TOOLS_DIR/"; go install
-sudo mv -f "$GOBIN/trufflehog" /usr/bin/
-cd $HOME
+curl -sSfL https://raw.githubusercontent.com/trufflesecurity/trufflehog/main/scripts/install.sh | sh -s -- -b /usr/local/bin
 
-
-
-
+# === gf & patterns ===
 echo -e "${green}Installing gf...${reset}"
 go install github.com/tomnomnom/gf@latest
 mkdir -p $HOME/.gf
 
 echo -e "${green}Downloading gf patterns...${reset}"
-git clone https://github.com/1ndianl33t/Gf-Patterns.git "$WORDLIST_DIR/gf-patterns"
-cp "$WORLDLIST_DIR/gf-patterns"/*.json $HOME/.gif/
-
-echo -e "${green}Setting up gf bash completions...${reset}"
+git clone https://github.com/1ndianl33t/Gf-Patterns.git "$WORDLIST_DIR/Gf-Patterns"
+cp "$WORDLIST_DIR/Gf-Patterns"/*.json $HOME/.gf/
 echo 'source $HOME/.gf/gf-completions.bash' >> $HOME/.bashrc
-source $HOME/.bashrc
 
-# === Python-based Tools ===
+# === Python Tools ===
+install_python_tool() {
+  TOOL_REPO=$1
+  TOOL_DIR_NAME=$2
+  ENV_NAME=$3
+  echo -e "${green}Installing $TOOL_DIR_NAME...${reset}"
+  git clone "$TOOL_REPO" "$TOOLS_DIR/$TOOL_DIR_NAME"
+  python3 -m venv "$PYTHON_VENV/$ENV_NAME"
+  source "$PYTHON_VENV/$ENV_NAME/bin/activate"
+  pip install -r "$TOOLS_DIR/$TOOL_DIR_NAME/requirements.txt" 2>/dev/null || pip install "$TOOLS_DIR/$TOOL_DIR_NAME"
+  deactivate
+}
 
-#XSStrike
-echo -e "${green}Installing XSStrike in a virtual environment...${reset}"
-git clone https://github.com/s0md3v/XSStrike.git "$TOOLS_DIR/xsstrike"
-python3 -m venv $PYTHON_VENV/xsstrike
-source $PYTHON_VENV/xsstrike/bin/activate
-pip install -r $TOOLS_DIR/xsstrike/requirements.txt
-cd $HOME
-deactivate
+install_python_tool https://github.com/s0md3v/XSStrike XSStrike xsstrike
+install_python_tool https://github.com/EnableSecurity/wafw00f wafw00f wafw00f
+install_python_tool https://github.com/s0md3v/Bolt Bolt csrfscan
+install_python_tool https://github.com/swisskyrepo/SSRFmap SSRFmap ssrfmap
+install_python_tool https://github.com/maurosoria/dirsearch dirsearch dirsearch
+install_python_tool https://github.com/s0md3v/Corsy Corsy corsy
 
-
-#WaafW00f
-echo -e "${green}Installing waafw00f in a virtual environment...${reset}"
-git clone https://github.com/EnableSecurity/wafw00f.git "$TOOLS_DIR/wafw00f"
-python3 -m venv $PYTHON_VENV/wafw00f
-source $PYTHON_VENV/wafw00f/bin/activate
-pip3 install wafw00f
-cd $HOME
-deactivate
-
-#CSRF Scanner
-echo -e "${green}Downloading CSRF Scanner (Bolt)...${reset}"
-git clone https://github.com/s0md3v/Bolt.git "$TOOLS_DIR/csrfscan"
-python3 -m venv $PYTHON_VENV/csrfscan
-source $PYTHON_VENV/csrfscan/bin/activate
-pip install -r $TOOLS_DIR/csrfscan/requirements.txt
-deactivate
-cd $HOME
-
-#SSRFmap
-echo -e "${green}Downloading SSRFmap...${reset}"
-git clone https://github.com/swisskyrepo/SSRFmap.git "$TOOLS_DIR/SSRFmap"
-python3 -m venv $PYTHON_VENV/ssrfmap
-source $PYTHON_VENV/ssrfmap/bin/activate
-pip install -r $TOOLS_DIR/SSRFmap/requirements.txt
-deactivate
-cd $HOME
-
-#TO TEST LATER
-#Wapiti
-echo -e "${green}Downloading Wapiti...${reset}"
-git clone https://github.com/wapiti-scanner/wapiti.git $TOOLS_DIR/wapiti
-python3 -m venv $PYTHON_VENV/wapiti
-source $PYTHON_VENV/wapiti/bin/activate
-pip install $TOOLS_DIR/wapiti
-deactivate
-cd $HOME
-
+# Wapiti
+echo -e "${green}Installing Wapiti...${reset}"
+pipx install wapiti3 || echo -e "${red}Wapiti may already be installed.${reset}"
 
 #Dirsearch
-echo -e "${green}Installing dirsearch in a virtual environment...${reset}"
-git clone https://github.com/maurosoria/dirsearch.git "$TOOLS_DIR/dirsearch"
-python3 -m venv $PYTHON_VENV/dirsearch
-source $PYTHON_VENV/dirsearch/bin/activate
-pip install -r $TOOLS_DIR/dirsearch/requirements.txt
+cd "$TOOLS_DIR/dirsearch"
 python3 setup.py install
-deactivate
-cd $HOME
+rm -rf .git
 
-# Clean up: remove __pycache__ and .git folders to save space
-find "$TOOLS_DIR/dirsearch" -type d -name "__pycache__" -exec rm -rf {} +
-rm -rf "$TOOLS_DIR/dirsearch/.git"
-
-
-
-# Paramspider
+# === Paramspider ===
 echo -e "${yellow}Installing Paramspider...${reset}"
 if [ ! -d "$TOOLS_DIR/paramspider" ]; then
   git clone https://github.com/devanshbatham/paramspider "$TOOLS_DIR/paramspider"
   pipx install "$TOOLS_DIR/paramspider"
-else
-  echo -e "${red}Paramspider already exists, skipping...${reset}"
 fi
 
-# SQLmap
-echo -e "${yellow}Downloading SQLmap...${reset}"
+# === SQLmap ===
+echo -e "${yellow}Installing SQLmap...${reset}"
 if [ ! -d "$TOOLS_DIR/sqlmap" ]; then
   git clone https://github.com/sqlmapproject/sqlmap "$TOOLS_DIR/sqlmap"
-  echo 'alias sqlmap="python3 $HOME/tools/sqlmap/sqlmap.py"' >> $HOME/.bashrc
-else
-  echo -e "${red}SQLmap already exists, skipping...${reset}"
+  echo 'alias sqlmap="python3 '$TOOLS_DIR'/sqlmap/sqlmap.py"' >> $HOME/.bashrc
 fi
 
-echo -e "${yellow}Downloading Corsy...${reset}"
-if [ ! -d "$TOOLS_DIR/Corsy" ]; then
-  git clone https://github.com/s0md3v/Corsy.git "$TOOLS_DIR/Corsy"
-  python3 -m venv $PYTHON_VENV/corsy
-  source $PYTHON_VENV/corsy/bin/activate
-  pip install -r $TOOLS_DIR/Corsy/requirements.txt
-  deactivate
-else
-  echo -e "${red}Corsy already exists, skipping...${reset}"
-
-# Arjun
-echo -e "${yellow}Installing Arjun...${reset}"
+# === Arjun & Uro ===
 pipx install arjun || echo -e "${red}Arjun may already be installed.${reset}"
-
-# Uro
-echo -e "${yellow}Installing Uro...${reset}"
 pipx install uro || echo -e "${red}Uro may already be installed.${reset}"
 
-# Nikto
+# === Nikto ===
 echo -e "${yellow}Installing Nikto...${reset}"
 if [ ! -d "$TOOLS_DIR/nikto" ]; then
   git clone https://github.com/sullo/nikto "$TOOLS_DIR/nikto"
-  echo 'alias nikto="perl $HOME/tools/nikto/program/nikto.pl"' >> $HOME/.bashrc
+  echo 'alias nikto="perl $TOOLS_DIR/nikto/program/nikto.pl"' >> $HOME/.bashrc
 else
   echo -e "${red}Nikto already exists, skipping...${reset}"
 fi
 
 # === Wordlists ===
+echo -e "${yellow}Downloading wordlists...${reset}"
+git clone https://github.com/danielmiessler/SecLists.git "$WORDLIST_DIR/SecLists"
+git clone https://github.com/coffinxp/payloads.git "$WORDLIST_DIR/payloads"
+git clone https://github.com/fuzzdb-project/fuzzdb.git "$WORDLIST_DIR/fuzzdb"
+git clone https://github.com/swisskyrepo/PayloadsAllTheThings.git "$WORDLIST_DIR/PayloadsAllTheThings"
+git clone https://github.com/six2dez/OneListForAll "$WORDLIST_DIR/OneListForAll"
 
-# SecLists ===
-echo -e "${yellow}Downloading Seclists...${reset}"
-git clone https://github.com/danielmiessler/SecLists.git "$TOOLS_DIR/wordlists/seclists"
-
-#Payloads (LostSec)
-echo -e "${yellow}Downloading Payloads from LostSec..."
-git clone https://github.com/coffinxp/payloads.git "$TOOLS_DIR/wordlists/payloads"
-
-#FuzzDB
-echo -e "${yellow}Downloading FuzzDB...${reset}"
-git clone https://github.com/fuzzdb-project/fuzzdb.git "$TOOLS_DIR/wordlists/FuzzDB"
-
-#Portable-Wordlists
-echo -e "${yellow}Downloading PayloadsAlltheThings...${reset}"
-git clone https://github.com/swisskyrepo/PayloadsAllTheThings.git "$TOOLS_DIR/wordlists/PayloadsAllTheThings"
-
-#Dirbuster Wordlist
-echo -e "${yellow}Downloading dirbuster wordlist...${reset}"
-git clone https://github.com/digination/dirbuster-ng/tree/master/wordlists "$TOOLS_DIR/wordlists/dirb"
-
-#OneForAll
-echo -e "${yellow}Downloading OneForAll wordlist...${reset}"
-git clone https://github.com/six2dez/OneListForAll "$TOOLS_DIR/wordlists/oneforall"
-
-# === Final Output ===
+# === Done ===
 echo -e "${green}All tools installed successfully!${reset}"
 echo -e "${yellow}Run 'source $HOME/.bashrc' or restart your terminal to use the aliases.${reset}"

@@ -71,10 +71,53 @@ do
 done
 deactivate
 
-echo "Collecting parameters..."
+echo "[+] Collecting parameters..."
 arjun -l "$DOMAIN_DIR/subdomains_$TIMESTAMP.txt" > "$DOMAIN_DIR/arjun-param_$TIMESTAMP.txt"
 paramspider -l "$DOMAIN_DIR/subdomains_$TIMESTAMP.txt" 
 mv results $DOMAIN_DIR/
+
+echo "[+] Collecting ASNs..."
+echo "[+] Resolving domain to IP..."
+ip=$(dig +short "$DOMAIN" | tail -n1)
+
+if [[ -z "$ip" ]]; then
+    echo "[-] Failed to resolve domain to IP."
+    exit 1
+fi
+
+echo "[+] Resolved IP: $ip"
+
+echo "[+] Getting ASN using Team Cymru..."
+asn=$(whois -h whois.cymru.com " -v $ip" | tail -n1 | awk '{print $1}')
+if [[ -z "$asn" ]]; then
+    echo "[-] Failed to get ASN for IP: $ip"
+    exit 1
+fi
+echo "[+] Found ASN: AS$asn"
+
+echo "[+] Fetching CIDRs for ASN using BGPView API..."
+cidrs=$(curl -s "https://api.bgpview.io/asn/$asn/prefixes" | jq -r '.data.ipv4_prefixes[].prefix')
+
+if [[ -z "$cidrs" ]]; then
+    echo "[-] Failed to get CIDRs for ASN $asn"
+    exit 1
+fi
+
+echo "[+] Found the following IP ranges:"
+echo "$cidrs"
+
+read -p "[?] Do you want to scan these ranges with Nmap? (y/n): " confirm
+if [[ "$confirm" != "y" ]]; then
+    echo "[*] Skipping scan."
+    exit 0
+fi
+
+mkdir -p "$DOMAIN_DIR/asn_scans/AS$asn"
+for cidr in $cidrs; do
+    echo "[*] Scanning $cidr..."
+    nmap -T4 -Pn -F "$cidr" -oA "$DOMAIN_DIR/asn_scans/AS$asn/scan_$(echo $cidr | tr '/' '_')"
+done
+echo "[+] Scanning complete. Results saved in "$DOMAIN_DIR/asn_scans/AS$asn/""
 
 echo "[+] Extracting IPs for port scanning..."
 grep -oP '\[\K[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' "$DOMAIN_DIR/alive_$TIMESTAMP.txt" | sort -u > "$DOMAIN_DIR/ip_targets.txt"
