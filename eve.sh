@@ -7,11 +7,38 @@ COLLABORATOR_LINK= #PLEASE ADD IT...
 OUTPUT=$HOME/recon
 mkdir -p "$OUTPUT"
 
+
+
 read -p "Enter domain or URL: " DOMAIN
 CLEAN_DOMAIN=$(echo "$DOMAIN" | sed -E 's~https?://~~' | sed 's~/.*~~')
 DOMAIN_DIR="$OUTPUT/$CLEAN_DOMAIN"
 TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
 mkdir -p "$DOMAIN_DIR"
+
+generate_html_report() {
+  local domain_dir="$1"
+  local domain_name="$(basename "$domain_dir")"
+  local report_file="$domain_dir/recon_report.html"
+
+  {
+    echo "<!DOCTYPE html><html><head><meta charset='UTF-8'>"
+    echo "<title>Recon Report for $domain_name</title>"
+    echo "<style>body{font-family:monospace;background:#f4f4f4;padding:20px}h2{color:#2c3e50}pre{background:#fff;padding:10px;border:1px solid #ccc;overflow-x:auto;}</style>"
+    echo "</head><body>"
+    echo "<h1>Recon Report for $domain_name</h1>"
+
+    for file in "$domain_dir"/*.txt; do
+      fname=$(basename "$file")
+      echo "<h2>$fname</h2>"
+      echo "<pre>$(cat "$file" | sed 's/&/&amp;/g;s/</\\&lt;/g;s/>/\\&gt;/g')</pre>"
+    done
+
+    echo "</body></html>"
+  } > "$report_file"
+
+  echo "[+] HTML report generated: $report_file"
+  xdg-open "$report_file" >/dev/null 2>&1 || true
+}
 
 echo "[+] Running subfinder..."
 subfinder -d "$CLEAN_DOMAIN" -silent -o "$DOMAIN_DIR/subfinder.txt" > /dev/null 2>&1
@@ -186,3 +213,4 @@ python3 "$DOMAIN_DIR/allurls_$TIMESTAMP.txt" | tee "$DOMAIN_DIR/cors_results_$TI
 
 
 echo "[✓] Finished! Results in $DOMAIN_DIR"
+generate_html_report "$DOMAIN_DIR"

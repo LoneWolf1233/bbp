@@ -1,7 +1,9 @@
 #!/bin/bash
 # === multi_installer.sh - Cleaned Automated installer for security tools and wordlists ===
 # Author: Lone Wolf
-# Last updated: [17-6-2025]
+# Last updated: [22-6-2025]
+REAL_HOME=$(getent passwd $SUDO_USER | cut -d: -f6)
+export HOME=$REAL_HOME
 
 # === Logging ===
 LOGFILE="$HOME/multi_installer.log"
@@ -16,8 +18,8 @@ reset='\033[0m'
 TOOLS_DIR=$HOME/tools
 PYTHON_VENV=$HOME/Python-Environments
 export WORDLIST_DIR="$TOOLS_DIR/wordlists"
-GOBIN=$(go env GOPATH)/bin
-export PATH="$PATH:$GOBIN"
+
+
 
 mkdir -p "$WORDLIST_DIR" "$TOOLS_DIR" "$PYTHON_VENV"
 
@@ -29,10 +31,19 @@ sudo apt update -y && sudo apt upgrade -y
 echo -e "${green}Installing dependencies...${reset}"
 sudo apt install -y python3 python3-pip pipx golang-go git wget unzip perl curl nmap npm nodejs
 pipx ensurepath
+GOBIN=$(go env GOPATH)/bin
+export PATH="$PATH:$GOBIN"
 
 # === Install broken-link-checker ===
 echo -e "${green}Installing broken-link-checker...${reset}"
 npm install broken-link-checker -g
+
+# === SearchSploit ===
+git clone https://www.github.com/Err0r-ICA/Searchsploit "$TOOLS_DIR"
+cd $TOOLS_DIR/Searchsploit 
+bash install.sh
+
+
 
 # === Install Go Tools ===
 declare -A go_tools=(
