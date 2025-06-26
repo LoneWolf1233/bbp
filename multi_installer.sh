@@ -1,7 +1,7 @@
 #!/bin/bash
 # === multi_installer.sh - Cleaned Automated installer for security tools and wordlists ===
 # Author: Lone Wolf
-# Last updated: [22-6-2025]
+# Last updated: [25-6-2025]
 REAL_HOME=$(getent passwd $SUDO_USER | cut -d: -f6)
 export HOME=$REAL_HOME
 
@@ -34,123 +34,465 @@ pipx ensurepath
 GOBIN=$(go env GOPATH)/bin
 export PATH="$PATH:$GOBIN"
 
-# === Install broken-link-checker ===
-echo -e "${green}Installing broken-link-checker...${reset}"
-npm install broken-link-checker -g
+TOOLS=(
+  "Install All"
+  "Broken-Link-Checker"
+  "Searchsploit"
+  "assetfinder"
+  "gau"
+  "httpx"
+  "katana"
+  "nuclei"
+  "subfinder"
+  "waybackurls"
+  "dnsx"
+  "hakrawler"
+  "amass"
+  "ffuf"
+  "gobuster"
+  "dalfox"
+  "kxss"
+  "subzy"
+  "shortscan"
+  "gxss"
+  "crlfuzz"
+  "trufflehog"
+  "gf"
+  "csrfscan"
+  "SSRFscan"
+  "dirsearch"
+  "corsy"
+  "wapiti"
+  "sqlmap"
+  "arjun"
+  "uro"
+  "nikto"
+  "seclists"
+  "coffin-payloads"
+  "fuzzdb"
+  "Only Wordlists"
+  "Only Tools"
 
-# === SearchSploit ===
-git clone https://www.github.com/Err0r-ICA/Searchsploit "$TOOLS_DIR"
-cd $TOOLS_DIR/Searchsploit 
-bash install.sh
-
-
-
-# === Install Go Tools ===
-declare -A go_tools=(
-  [assetfinder]="github.com/tomnomnom/assetfinder@latest"
-  [gau]="github.com/lc/gau/v2/cmd/gau@latest"
-  [httpx]="github.com/projectdiscovery/httpx/cmd/httpx@latest"
-  [katana]="github.com/projectdiscovery/katana/cmd/katana@latest"
-  [nuclei]="github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest"
-  [subfinder]="github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest"
-  [waybackurls]="github.com/tomnomnom/waybackurls@latest"
-  [dnsx]="github.com/projectdiscovery/dnsx/cmd/dnsx@latest"
-  [hakrawler]="github.com/hakluke/hakrawler@latest"
-  [amass]="github.com/owasp-amass/amass/v4/...@master"
-  [ffuf]="github.com/ffuf/ffuf/v2@latest"
-  [gobuster]="github.com/OJ/gobuster/v3@latest"
-  [dalfox]="github.com/hahwul/dalfox/v2@latest"
-  [kxss]="github.com/Emoe/kxss@latest"
-  [subzy]="github.com/PentestPad/subzy@latest"
-  [shortscan]="github.com/bitquark/shortscan/cmd/shortscan@latest"
-  [Gxss]="github.com/KathanP19/Gxss@latest"
-  [crlfuzz]="github.com/dwisiswant0/crlfuzz/cmd/crlfuzz@latest"
 )
 
-echo -e "${yellow}Installing Go-based tools...${reset}"
-for tool in "${!go_tools[@]}"; do
-  echo -e "${green}Installing $tool...${reset}"
-  go install -v "${go_tools[$tool]}"
-  sudo mv -f "$GOBIN/$tool" /usr/bin/ 2>/dev/null || true
+echo -e "\nAvailable tools to install:"
+for i in "${!TOOLS[@]}"; do
+  echo "$((i+1)). ${TOOLS[$i]}"
 done
 
-# === Trufflehog ===
-echo -e "${green}Installing Trufflehog...${reset}"
-curl -sSfL https://raw.githubusercontent.com/trufflesecurity/trufflehog/main/scripts/install.sh | sh -s -- -b /usr/local/bin
+read -p $'\nEnter the numbers of the tools you want to install (e.g. 1 3 5): ' -a choices
 
-# === gf & patterns ===
-echo -e "${green}Installing gf...${reset}"
-go install github.com/tomnomnom/gf@latest
-mkdir -p $HOME/.gf
+install_broken_link_checker() {
+  
+  echo -e "${green}Installing broken-link-checker...${reset}"
+  npm install broken-link-checker -g
 
-echo -e "${green}Downloading gf patterns...${reset}"
-git clone https://github.com/1ndianl33t/Gf-Patterns.git "$WORDLIST_DIR/Gf-Patterns"
-cp "$WORDLIST_DIR/Gf-Patterns"/*.json $HOME/.gf/
-echo 'source $HOME/.gf/gf-completions.bash' >> $HOME/.bashrc
-
-# === Python Tools ===
-install_python_tool() {
-  TOOL_REPO=$1
-  TOOL_DIR_NAME=$2
-  ENV_NAME=$3
-  echo -e "${green}Installing $TOOL_DIR_NAME...${reset}"
-  git clone "$TOOL_REPO" "$TOOLS_DIR/$TOOL_DIR_NAME"
-  python3 -m venv "$PYTHON_VENV/$ENV_NAME"
-  source "$PYTHON_VENV/$ENV_NAME/bin/activate"
-  pip install -r "$TOOLS_DIR/$TOOL_DIR_NAME/requirements.txt" 2>/dev/null || pip install "$TOOLS_DIR/$TOOL_DIR_NAME"
-  deactivate
+}
+install_searchsploit() {
+  echo -e "${green}Installing searchsploit...${reset}"
+  git clone https://www.github.com/Err0r-ICA/Searchsploit "$TOOLS_DIR/Searchsploit"
+  cd $TOOLS_DIR/Searchsploit 
+  bash install.sh
 }
 
-install_python_tool https://github.com/s0md3v/XSStrike XSStrike xsstrike
-install_python_tool https://github.com/EnableSecurity/wafw00f wafw00f wafw00f
-install_python_tool https://github.com/s0md3v/Bolt Bolt csrfscan
-install_python_tool https://github.com/swisskyrepo/SSRFmap SSRFmap ssrfmap
-install_python_tool https://github.com/maurosoria/dirsearch dirsearch dirsearch
-install_python_tool https://github.com/s0md3v/Corsy Corsy corsy
+install_assetfinder() {
+  echo -e "${green}Installing assetfinder...${reset}"
+  go install -v github.com/tomnomnom/assetfinder@latest
+  sudo mv $GOBIN/assetfinder /usr/bin
+}
 
-# Wapiti
-echo -e "${green}Installing Wapiti...${reset}"
-pipx install wapiti3 || echo -e "${red}Wapiti may already be installed.${reset}"
+install_gau() {
+  echo -e "${green}Installing gau...${reset}"
+  go install -v github.com/lc/gau/v2/cmd/gau@latest
+  sudo mv $GOBIN/gau /usr/bin
+}
 
-#Dirsearch
-cd "$TOOLS_DIR/dirsearch"
-python3 setup.py install
-rm -rf .git
+install_httpx() {
+  echo -e "${green}Installing httpx...${reset}"
+  go install -v github.com/projectdiscovery/httpx/cmd/httpx@latest
+  sudo mv $GOBIN/httpx /usr/bin
+}
 
-# === Paramspider ===
-echo -e "${yellow}Installing Paramspider...${reset}"
-if [ ! -d "$TOOLS_DIR/paramspider" ]; then
-  git clone https://github.com/devanshbatham/paramspider "$TOOLS_DIR/paramspider"
-  pipx install "$TOOLS_DIR/paramspider"
-fi
+install_katana() {
+  echo -e "${green}Installing katana...${reset}"
+  go install -v github.com/projectdiscovery/katana/cmd/katana@latest
+  sudo mv $GOBIN/katana /usr/bin
+}
 
-# === SQLmap ===
-echo -e "${yellow}Installing SQLmap...${reset}"
-if [ ! -d "$TOOLS_DIR/sqlmap" ]; then
-  git clone https://github.com/sqlmapproject/sqlmap "$TOOLS_DIR/sqlmap"
-  echo 'alias sqlmap="python3 '$TOOLS_DIR'/sqlmap/sqlmap.py"' >> $HOME/.bashrc
-fi
+install_nuclei() {
+  echo -e "${green}Installing nuclei...${reset}"
+  go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
+  sudo mv $GOBIN/nuclei /usr/bin
+}
 
-# === Arjun & Uro ===
-pipx install arjun || echo -e "${red}Arjun may already be installed.${reset}"
-pipx install uro || echo -e "${red}Uro may already be installed.${reset}"
+install_subfinder() {
+  echo -e "${green}Installing subfinder...${reset}"
+  go install -v github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest
+  sudo mv $GOBIN/subfinder /usr/bin
+}
 
-# === Nikto ===
-echo -e "${yellow}Installing Nikto...${reset}"
-if [ ! -d "$TOOLS_DIR/nikto" ]; then
-  git clone https://github.com/sullo/nikto "$TOOLS_DIR/nikto"
-  echo 'alias nikto="perl $TOOLS_DIR/nikto/program/nikto.pl"' >> $HOME/.bashrc
-else
-  echo -e "${red}Nikto already exists, skipping...${reset}"
-fi
+install_waybackurls() {
+  echo -e "${green}Installing waybackurls...${reset}"
+  go install -v github.com/tomnomnom/waybackurls@latest
+  sudo mv $GOBIN/waybackurls /usr/bin
+}
 
-# === Wordlists ===
-echo -e "${yellow}Downloading wordlists...${reset}"
-git clone https://github.com/danielmiessler/SecLists.git "$WORDLIST_DIR/SecLists"
-git clone https://github.com/coffinxp/payloads.git "$WORDLIST_DIR/payloads"
-git clone https://github.com/fuzzdb-project/fuzzdb.git "$WORDLIST_DIR/fuzzdb"
-git clone https://github.com/swisskyrepo/PayloadsAllTheThings.git "$WORDLIST_DIR/PayloadsAllTheThings"
-git clone https://github.com/six2dez/OneListForAll "$WORDLIST_DIR/OneListForAll"
+install_dnsx() {
+  echo -e "${green}Installing dnsx...${reset}"
+  go install -v github.com/projectdiscovery/dnsx/cmd/dnsx@latest
+  sudo mv $GOBIN/dnsx /usr/bin
+}
+
+install_hakrawler() {
+  echo -e "${green}Installing hakrawler...${reset}"
+  go install -v github.com/hakluke/hakrawler@latest
+  sudo mv $GOBIN/hakrawler /usr/bin
+}
+
+install_amass() {
+  echo -e "${green}Installing amass...${reset}"
+  go install -v github.com/owasp-amass/amass/v4/...@master
+  sudo mv $GOBIN/amass /usr/bin
+}
+
+install_ffuf() {
+  echo -e "${green}Installing ffuf...${reset}"
+  go install -v github.com/ffuf/ffuf/v2@latest
+  sudo mv $GOBIN/ffuf /usr/bin
+}
+
+install_gobuster() {
+  echo -e "${green}Installing gobuster...${reset}"
+  go install -v github.com/OJ/gobuster/v3@latest
+  sudo mv $GOBIN/gobuster /usr/bin
+}
+
+install_dalfox() {
+  echo -e "${green}Installing dalfox...${reset}"
+  go install -v github.com/hahwul/dalfox/v2@latest
+  sudo mv $GOBIN/dalfox /usr/bin
+}
+
+install_kxss() {
+  echo -e "${green}Installing kxss...${reset}"
+  go install -v github.com/Emoe/kxss@latest
+  sudo mv $GOBIN/kxss /usr/bin
+}
+
+install_subzy() {
+  echo -e "${green}Installing subzy...${reset}"
+  go install -v github.com/PentestPad/subzy@latest
+  sudo mv $GOBIN/subzy /usr/bin
+}
+
+install_shortscan() {
+  echo -e "${green}Installing shortscan...${reset}"
+  go install -v github.com/bitquark/shortscan/cmd/shortscan@latest
+  sudo mv $GOBIN/shortscan /usr/bin
+}
+
+install_gxss() {
+  echo -e "${green}Installing gxss...${reset}"
+  go install -v github.com/KathanP19/Gxss@latest
+  sudo mv $GOBIN/Gxss /usr/bin
+}
+
+install_crlfuzz(){
+  echo -e "${green}Installing crlfuzz...${reset}"
+  go install -v github.com/dwisiswant0/crlfuzz/cmd/crlfuzz@latest
+  sudo mv $GOBIN/crlfuzz /usr/bin
+}
+
+install_trufflehog(){
+  echo -e "${green}Installing Trufflehog...${reset}"
+  curl -sSfL https://raw.githubusercontent.com/trufflesecurity/trufflehog/main/scripts/install.sh | sh -s -- -b /usr/local/bin
+}
+
+install_gf_patterns(){
+  echo -e "${green}Installing gf...${reset}"
+  go install github.com/tomnomnom/gf@latest
+  mkdir -p $HOME/.gf
+  echo -e "${green}Downloading gf patterns...${reset}"
+  git clone https://github.com/1ndianl33t/Gf-Patterns.git "$WORDLIST_DIR/Gf-Patterns"
+  cp "$WORDLIST_DIR/Gf-Patterns"/*.json $HOME/.gf/
+  echo 'source $HOME/.gf/gf-completions.bash' >> $HOME/.bashrc
+}
+
+install_xsstrike() {
+  echo -e "${green}Installing xsstrike...${reset}"
+  if [ ! -d "$TOOLS_DIR/XSStrike" ]; then
+    git clone https://github.com/s0md3v/XSStrike "$TOOLS_DIR/XSStrike"
+    python3 -m venv "$PYTHON_VENV/xsstrike"
+    source "$PYTHON_VENV/xsstrike/bin/activate"
+    pip install -r "$TOOLS_DIR/XSStrike/requirements.txt"
+    deactivate
+  else
+    echo -e "XSStrike already exists. Skipping..."
+  fi
+}
+
+install_wafw00f() {
+  echo -e "${green}Installing wafw00f...${reset}"
+  if [ ! -d "$TOOLS_DIR/wafw00f" ]; then
+    git clone https://github.com/EnableSecurity/wafw00f "$TOOLS_DIR/wafw00f"
+    python3 -m venv "$PYTHON_VENV/wafw00f"
+    source "$PYTHON_VENV/wafw00f/bin/activate"
+    pip install -r "$TOOLS_DIR/wafw00f/requirements.txt"
+    deactivate
+  else
+    echo -e "${yellow}Wafw00f already exists. Skipping...${reset}"
+  fi
+}
+
+install_csrfscan() {
+  echo -e "${green}Installing csrfscan...${reset}"
+  if [ ! -d "$TOOLS_DIR/Bolt" ]; then
+    git clone https://github.com/s0md3v/Bolt "$TOOLS_DIR/Bolt"
+    python3 -m venv "$PYTHON_VENV/csrfscan"
+    source "$PYTHON_VENV/csrfscan/bin/activate"
+    pip install -r "$TOOLS_DIR/Bolt/requirements.txt"
+    deactivate
+  else
+    echo -e "${yellow}CSRFscan already exists. Skipping...${reset}"
+  fi
+}
+
+install_ssrfmap() {
+  echo -e "${green}Installing ssrfmap...${reset}"
+  if [ ! -d "$TOOLS_DIR/SSRFmap" ]; then
+    git clone https://github.com/swisskyrepo/SSRFmap "$TOOLS_DIR/SSRFmap"
+    python3 -m venv "$PYTHON_VENV/ssrfmap"
+    source "$PYTHON_VENV/ssrfmap/bin/activate"
+    pip install -r "$TOOLS_DIR/SSRFmap/requirements.txt"
+    deactivate
+  else
+    echo -e "${yellow}SSRFmap already exists. Skipping...${reset}"
+  fi
+}
+
+install_dirsearch() {
+  echo -e "${green}Installing dirsearch...${reset}"
+  if [ ! -d "$TOOLS_DIR/dirsearch" ]; then
+    git clone https://github.com/maurosoria/dirsearch "$TOOLS_DIR/dirsearch"
+    python3 -m venv "$PYTHON_VENV/dirsearch"
+    source "$PYTHON_VENV/dirsearch/bin/activate"
+    pip install -r "$TOOLS_DIR/dirsearch/requirements.txt"
+    deactivate
+  else
+    echo -e "${yellow}Dirsearch already exists. Skipping...${reset}"
+  fi
+}
+
+install_corsy() {
+  echo -e "${green}Installing corsy...${reset}"
+  if [ ! -d "$TOOLS_DIR/Corsy" ]; then
+    git clone https://github.com/s0md3v/Corsy "$TOOLS_DIR/Corsy"
+    python3 -m venv "$PYTHON_VENV/corsy"
+    source "$PYTHON_VENV/corsy/bin/activate"
+    pip install -r "$TOOLS_DIR/Corsy/requirements.txt"
+    deactivate
+  else
+    echo -e "${yellow}Corsy already exists. Skipping...${reset}"
+  fi
+}
+
+install_wapiti() {
+  echo -e "${green}Installing Wapiti...${reset}"
+  pipx install wapiti3 || echo -e "${red}Wapiti may already be installed.${reset}"
+}
+
+install_paramspider(){
+  echo -e "${yellow}Installing Paramspider...${reset}"
+  if [ ! -d "$TOOLS_DIR/paramspider" ]; then
+    git clone https://github.com/devanshbatham/paramspider "$TOOLS_DIR/paramspider"
+    pipx install "$TOOLS_DIR/paramspider"
+  fi
+}
+
+install_sqlmap() {
+  echo -e "${yellow}Installing SQLmap...${reset}"
+  if [ ! -d "$TOOLS_DIR/sqlmap" ]; then
+    git clone https://github.com/sqlmapproject/sqlmap "$TOOLS_DIR/sqlmap"
+    echo 'alias sqlmap="python3 '$TOOLS_DIR'/sqlmap/sqlmap.py"' >> $HOME/.bashrc
+  fi
+}
+
+install_arjun() {
+  echo -e "${yellow}Installing arjun...${reset}"
+  pipx install arjun || echo -e "${red}Arjun may already be installed.${reset}"
+}
+
+install_uro() {
+  echo -e "${yellow}Installing uro...${reset}"
+  pipx install uro || echo -e "${red}Uro may already be installed.${reset}"
+}
+
+install_nikto() {
+  echo -e "${yellow}Installing Nikto...${reset}"
+  if [ ! -d "$TOOLS_DIR/nikto" ]; then
+    git clone https://github.com/sullo/nikto "$TOOLS_DIR/nikto"
+    echo 'alias nikto="perl $TOOLS_DIR/nikto/program/nikto.pl"' >> $HOME/.bashrc
+  else
+    echo -e "${red}Nikto already exists, skipping...${reset}"
+  fi
+}
+
+install_wordlists() {
+  echo -e "${yellow}Downloading wordlists...${reset}"
+  if [ ! -d "$WORDLIST_DIR/SecLists" ]; then
+    git clone https://github.com/danielmiessler/SecLists.git "$WORDLIST_DIR/SecLists"
+  else
+    echo -e "${red}Seclists already exists. Skipping...${reset}"
+  fi
+  if [ ! -d "$WORDLIST_DIR/payloads" ]; then
+    git clone https://github.com/coffinxp/payloads.git "$WORDLIST_DIR/payloads"
+  else
+    echo -e "${red}Coffin's payloads alread exist. Skipping...${reset}"
+  fi
+  if [ ! -d "$WORDLIST_DIR/fuzzdb" ]; then
+    git clone https://github.com/fuzzdb-project/fuzzdb.git "$WORDLIST_DIR/fuzzdb"
+  else
+    echo -e "${red}FuzzDB already exists. Skipping...${reset}"
+  fi
+  if [ ! -d "$WORDLIST_DIR/PayloadsAllTheThings" ]; then
+    git clone https://github.com/swisskyrepo/PayloadsAllTheThings.git "$WORDLIST_DIR/PayloadsAllTheThings"
+  else
+    echo -e "${red}PayloadsAllTheThings already exists. Skipping...${reset}"
+  fi
+  if [ ! -d "$WORDLIST_DIR/OneListForAll" ]; then
+    git clone https://github.com/six2dez/OneListForAll "$WORDLIST_DIR/OneListForAll"
+  else
+    echo -e "${red}OneListForAll already exists. Skipping...${reset}"
+  fi
+  if [ ! -d "$WORDLIST_DIR/dirb" ]; then
+    git clone https://github.com/v0re/dirb.git "$WORDLIST_DIR/dirb"
+  else
+    echo -e "${red}Dirb already exists. Skipping...${reset}"
+  fi
+}
+
+install_tools_only() {
+  echo -e "${yellow}Installing only tools. (no wordlists)"
+  install_broken_link_checker
+  install_searchsploit
+  install_assetfinder
+  install_gau
+  install_httpx
+  install_katana
+  install_nuclei
+  install_subfinder
+  install_waybackurls
+  install_dnsx
+  install_hakrawler
+  install_amass
+  install_ffuf
+  install_gobuster
+  install_dalfox
+  install_kxss
+  install_subzy
+  install_shortscan
+  install_gxss
+  install_crlfuzz
+  install_trufflehog
+  install_gf_patterns
+  install_xsstrike
+  install_wafw00f
+  install_csrfscan
+  install_ssrfmap
+  install_dirsearch
+  install_corsy
+  install_wapiti
+  install_paramspider
+  install_sqlmap
+  install_arjun
+  install_uro
+  install_nikto
+}
+
+install_all() {
+  echo -e "${yellow}Installing all tools and wordlists...${reset}"
+  install_broken_link_checker
+  install_searchsploit
+  install_assetfinder
+  install_gau
+  install_httpx
+  install_katana
+  install_nuclei
+  install_subfinder
+  install_waybackurls
+  install_dnsx
+  install_hakrawler
+  install_amass
+  install_ffuf
+  install_gobuster
+  install_dalfox
+  install_kxss
+  install_subzy
+  install_shortscan
+  install_gxss
+  install_crlfuzz
+  install_trufflehog
+  install_gf_patterns
+  install_xsstrike
+  install_wafw00f
+  install_csrfscan
+  install_ssrfmap
+  install_dirsearch
+  install_corsy
+  install_wapiti
+  install_paramspider
+  install_sqlmap
+  install_arjun
+  install_uro
+  install_nikto
+  install_wordlists
+}
+
+for choice in "${choices[@]}"; do
+  case $choice in
+    1) install_all ;;
+    2) install_broken_link_checker ;;
+    3) install_searchsploit ;;
+    4) install_assetfinder ;;
+    5) install_gau ;;
+    6) install_httpx ;;
+    7) install_katana ;;
+    8) install_nuclei ;;
+    9) install_subfinder ;;
+    10) install_waybackurls ;;
+    11) install_dnsx ;;
+    12) install_hakrawler ;;
+    13) install_amass ;;
+    14) install_ffuf ;;
+    15) install_gobuster ;;
+    16) install_dalfox ;;
+    17) install_kxss ;;
+    18) install_subzy ;;
+    19) install_shortscan ;;
+    20) install_gxss ;;
+    21) install_crlfuzz ;;
+    22) install_trufflehog ;;
+    23) install_gf_patterns ;;
+    24) install_xsstrike ;;
+    25) install_wafw00f ;;
+    26) install_csrfscan ;;
+    27) install_ssrfmap ;;
+    28) install_dirsearch ;;
+    29) install_corsy ;;
+    30) install_wapiti ;;
+    31) install_paramspider ;;
+    32) install_sqlmap ;;
+    33) install_arjun ;;
+    34) install_uro ;;
+    35) install_nikto ;;
+    36) install_wordlists ;;
+    37) install_tools_only ;;
+    
+    *) echo "Invalid choice: $choice" ;;
+  esac
+done
+
+
 
 # === Done ===
 echo -e "${green}All tools installed successfully!${reset}"
