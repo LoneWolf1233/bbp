@@ -53,6 +53,8 @@ TOOLS=(
   "dalfox"
   "kxss"
   "subzy"
+  "S3Scanner"
+  "SSTImap"
   "shortscan"
   "gxss"
   "crlfuzz"
@@ -183,6 +185,21 @@ install_subzy() {
   echo -e "${green}Installing subzy...${reset}"
   go install -v github.com/PentestPad/subzy@latest
   sudo mv $GOBIN/subzy /usr/bin
+}
+
+install_s3scanner() {
+  echo -e "${green}Installing s3scanner...${reset}"
+  go install -v github.com/sa7mon/s3scanner@latest
+  sudo mv $GOBIN/s3scanner /usr/bin
+}
+
+install_sstimap() {
+  echo -e "${green}Installing SSTImap...${reset}"
+  git clone https://github.com/vladko312/SSTImap.git "$TOOLS_DIR/SSTImap"
+  python -m venv "$PYTHON_VENV/sstimap"
+  source "$PYTHON_VENV/sstimap/bin/activate"
+  pip install -r "$TOOLS_DIR/SSTImap/requirements.txt"
+  deactivate
 }
 
 install_shortscan() {
@@ -390,6 +407,8 @@ install_tools_only() {
   install_dalfox
   install_kxss
   install_subzy
+  install_s3scanner
+  install_sstimap
   install_shortscan
   install_gxss
   install_crlfuzz
@@ -428,6 +447,8 @@ install_all() {
   install_dalfox
   install_kxss
   install_subzy
+  install_s3scanner
+  install_sstimap
   install_shortscan
   install_gxss
   install_crlfuzz
@@ -468,25 +489,27 @@ for choice in "${choices[@]}"; do
     16) install_dalfox ;;
     17) install_kxss ;;
     18) install_subzy ;;
-    19) install_shortscan ;;
-    20) install_gxss ;;
-    21) install_crlfuzz ;;
-    22) install_trufflehog ;;
-    23) install_gf_patterns ;;
-    24) install_xsstrike ;;
-    25) install_wafw00f ;;
-    26) install_csrfscan ;;
-    27) install_ssrfmap ;;
-    28) install_dirsearch ;;
-    29) install_corsy ;;
-    30) install_wapiti ;;
-    31) install_paramspider ;;
-    32) install_sqlmap ;;
-    33) install_arjun ;;
-    34) install_uro ;;
-    35) install_nikto ;;
-    36) install_wordlists ;;
-    37) install_tools_only ;;
+    19) install_s3scanner ;;
+    20) install_sstimap ;;
+    21) install_shortscan ;;
+    22) install_gxss ;;
+    23) install_crlfuzz ;;
+    24) install_trufflehog ;;
+    25) install_gf_patterns ;;
+    26) install_xsstrike ;;
+    27) install_wafw00f ;;
+    28) install_csrfscan ;;
+    29) install_ssrfmap ;;
+    30) install_dirsearch ;;
+    31) install_corsy ;;
+    32) install_wapiti ;;
+    33) install_paramspider ;;
+    34) install_sqlmap ;;
+    35) install_arjun ;;
+    36) install_uro ;;
+    37) install_nikto ;;
+    38) install_wordlists ;;
+    39) install_tools_only ;;
     
     *) echo "Invalid choice: $choice" ;;
   esac
