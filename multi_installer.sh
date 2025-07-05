@@ -1,7 +1,7 @@
 #!/bin/bash
 # === multi_installer.sh - Cleaned Automated installer for security tools and wordlists ===
 # Author: Lone Wolf
-# Last updated: [25-6-2025]
+# Last updated: [6-7-2025]
 REAL_HOME=$(getent passwd $SUDO_USER | cut -d: -f6)
 export HOME=$REAL_HOME
 
@@ -29,7 +29,7 @@ sudo apt update -y && sudo apt upgrade -y
 
 # === Install Dependencies ===
 echo -e "${green}Installing dependencies...${reset}"
-sudo apt install -y python3 python3-pip pipx golang-go git wget unzip perl curl nmap npm nodejs
+sudo apt install -y python3 python3-pip pipx golang-go git wget unzip perl curl npm nodejs
 pipx ensurepath
 GOBIN=$(go env GOPATH)/bin
 export PATH="$PATH:$GOBIN"
@@ -69,9 +69,9 @@ TOOLS=(
   "arjun"
   "uro"
   "nikto"
-  "seclists"
-  "coffin-payloads"
-  "fuzzdb"
+  "nmap"
+  "massdns"
+  "SecretFinder"
   "Only Wordlists"
   "Only Tools"
 
@@ -250,15 +250,7 @@ install_xsstrike() {
 
 install_wafw00f() {
   echo -e "${green}Installing wafw00f...${reset}"
-  if [ ! -d "$TOOLS_DIR/wafw00f" ]; then
-    git clone https://github.com/EnableSecurity/wafw00f "$TOOLS_DIR/wafw00f"
-    python3 -m venv "$PYTHON_VENV/wafw00f"
-    source "$PYTHON_VENV/wafw00f/bin/activate"
-    pip install -r "$TOOLS_DIR/wafw00f/requirements.txt"
-    deactivate
-  else
-    echo -e "${yellow}Wafw00f already exists. Skipping...${reset}"
-  fi
+  pip3 install wafw00f
 }
 
 install_csrfscan() {
@@ -348,10 +340,31 @@ install_nikto() {
   echo -e "${yellow}Installing Nikto...${reset}"
   if [ ! -d "$TOOLS_DIR/nikto" ]; then
     git clone https://github.com/sullo/nikto "$TOOLS_DIR/nikto"
-    echo 'alias nikto="perl $TOOLS_DIR/nikto/program/nikto.pl"' >> $HOME/.bashrc
+    echo 'alias nikto="perl $TOOLS_DIR/nikto/program/nikto.pl"' >> $REAL_HOME/.bashrc
   else
     echo -e "${red}Nikto already exists, skipping...${reset}"
   fi
+}
+
+install_nmap() {
+  echo -e "${yellow}Installing nmap...${reset}"
+  sudo apt install nmap -y
+}
+
+install_massdns() {
+  echo -e "${yellow}Installing massdns...${reset}"
+  git clone https://github.com/blechschmidt/massdns.git "$TOOLS_DIR/massdns"
+  cd massdns
+  make
+}
+
+install_secretfinder() {
+  echo -e "${yellow}Installing secretfinder...${reset}"
+  git clone https://github.com/m4ll0k/SecretFinder.git "$TOOLS_DIR/secretfinder"
+  python3 -m venv "$PYTHON_VENV/secretfinder"
+  source "$PYTHON_VENV/secretfinder/bin/activate"
+  pip install -r "$TOOLS_DIR/secretfinder/requirements.txt"
+  deactivate
 }
 
 install_wordlists() {
@@ -426,6 +439,7 @@ install_tools_only() {
   install_arjun
   install_uro
   install_nikto
+  install_nmap
 }
 
 install_all() {
@@ -466,6 +480,9 @@ install_all() {
   install_arjun
   install_uro
   install_nikto
+  install_nmap
+  install_massdns
+  install_secretfinder
   install_wordlists
 }
 
@@ -508,8 +525,11 @@ for choice in "${choices[@]}"; do
     35) install_arjun ;;
     36) install_uro ;;
     37) install_nikto ;;
-    38) install_wordlists ;;
-    39) install_tools_only ;;
+    38) install_nmap ;;
+    39) install_massdns ;;
+    40) install_secretfinder ;;
+    41) install_wordlists ;;
+    42) install_tools_only ;;
     
     *) echo "Invalid choice: $choice" ;;
   esac

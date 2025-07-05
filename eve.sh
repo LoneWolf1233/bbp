@@ -1,5 +1,12 @@
 #!/bin/bash
 
+# TOOLS TO ADD:
+# TRUFFLEHOG
+# DNSX
+# FUZZ EVERYTHING!!
+# WAPITI (MAYBE)
+# amass
+
 PYTHON_VENV=$HOME/Python-Environments
 TOOL_DIR=$HOME/tools
 WORDLIST_DIR="$TOOLS_DIR/wordlists"
@@ -101,6 +108,7 @@ deactivate
 echo "[+] Collecting parameters..."
 arjun -l "$DOMAIN_DIR/subdomains_$TIMESTAMP.txt" > "$DOMAIN_DIR/arjun-param_$TIMESTAMP.txt"
 paramspider -l "$DOMAIN_DIR/subdomains_$TIMESTAMP.txt" 
+find "$DOMAIN_DIR/results" -type f -name "*.txt" -exec cat {} + | sort -u > "$DOMAIN_DIR/paramspider_all_urls_$TIMESTAMP.txt"
 mv results $DOMAIN_DIR/
 
 echo "[+] Collecting ASNs..."
@@ -194,6 +202,16 @@ cat "$DOMAIN_DIR/allurls_$TIMESTAMP.txt" | grep -E "(login|signup|register|forgo
 
 echo "[+] Scanning for Cross Site Scripting 4/4..."
 cat "$DOMAIN_DIR/js_alive_$TIMESTAMP.txt" | Gxss -c 100 | sort -u | dalfox pipe -o "$DOMAIN_DIR/dom_xss_results.txt"
+
+echo "[+] Scanning for SSTI..."
+source "$PYTHON_VENV/sstimap/bin/activate"
+python3 "$TOOLS_DIR/SSTImap/sstimap.py" -l "$DOMAIN_DIR/xss_params_$TIMESTAMP.txt" -o "$DOMAIN_DIR/ssti_results_$TIMESTAMP.txt"
+deactivate
+
+echo "[+] Scanning for SSRF..."
+source "$PYTHON_VENV/ssrfmap/bin/activate"
+python3 "$TOOLS_DIR/ssrfmap/ssrfmap.py" -l "$DOMAIN_DIR/filtered_domains_$TIMESTAMP.txt" -o "$DOMAIN_DIR/ssrf_results_$TIMESTAMP.txt"
+deactivate
 
 echo "[+] Scanning for Local File Inclusion..."
 echo $DOMAIN | gau | gf lfi | uro | sed 's/=.*/=/' | qsreplace "FUZZ" | sort -u | xargs -I{} ffuf -u {} -w "$TOOLS_DIR/wordlists/payloads/lfi.txt" -c -mr "root:(x|\*|\$[^\:]*):0:0:" -v
