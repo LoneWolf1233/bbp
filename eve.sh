@@ -7,8 +7,10 @@
 # WAPITI (MAYBE)
 # amass
 
+REAL_HOME=$(getent passwd $SUDO_USER | cut -d: -f6)
+export HOME=$REAL_HOME
 PYTHON_VENV=$HOME/Python-Environments
-TOOL_DIR=$HOME/tools
+TOOLS_DIR=$HOME/tools
 WORDLIST_DIR="$TOOLS_DIR/wordlists"
 COLLABORATOR_LINK= #PLEASE ADD IT...
 OUTPUT=$HOME/recon
@@ -22,30 +24,7 @@ DOMAIN_DIR="$OUTPUT/$CLEAN_DOMAIN"
 TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
 mkdir -p "$DOMAIN_DIR"
 
-generate_html_report() {
-  local domain_dir="$1"
-  local domain_name="$(basename "$domain_dir")"
-  local report_file="$domain_dir/recon_report.html"
 
-  {
-    echo "<!DOCTYPE html><html><head><meta charset='UTF-8'>"
-    echo "<title>Recon Report for $domain_name</title>"
-    echo "<style>body{font-family:monospace;background:#f4f4f4;padding:20px}h2{color:#2c3e50}pre{background:#fff;padding:10px;border:1px solid #ccc;overflow-x:auto;}</style>"
-    echo "</head><body>"
-    echo "<h1>Recon Report for $domain_name</h1>"
-
-    for file in "$domain_dir"/*.txt; do
-      fname=$(basename "$file")
-      echo "<h2>$fname</h2>"
-      echo "<pre>$(cat "$file" | sed 's/&/&amp;/g;s/</\\&lt;/g;s/>/\\&gt;/g')</pre>"
-    done
-
-    echo "</body></html>"
-  } > "$report_file"
-
-  echo "[+] HTML report generated: $report_file"
-  xdg-open "$report_file" >/dev/null 2>&1 || true
-}
 
 echo "[+] Running subfinder..."
 subfinder -d "$CLEAN_DOMAIN" -silent -o "$DOMAIN_DIR/subfinder.txt" > /dev/null 2>&1
@@ -60,8 +39,8 @@ SUBDOMAIN_COUNT=$(wc -l < "$DOMAIN_DIR/subdomains_$TIMESTAMP.txt")
 echo "[+] Found $SUBDOMAIN_COUNT unique subdomains."
 
 echo "[+] Probing for alive domains..."
-httpx -l "$DOMAIN_DIR/subdomains_$TIMESTAMP.txt" -sc -td -ip -o "$DOMAIN_DIR/alive_$TIMESTAMP.txt" > /dev/null 2>&1
-awk '{print $1}' > "$DOMAIN_DIR/filtered_domains_$TIMESTAMP.txt"
+httpx -l "$DOMAIN_DIR/subdomains_$TIMESTAMP.txt" -sc -td -ip -o "$DOMAIN_DIR/alive_$TIMESTAMP.txt" 
+cat "$DOMAIN_DIR/alive_$TIMESTAMP.txt" | awk '{print $1}' > "$DOMAIN_DIR/filtered_domains_$TIMESTAMP.txt"
 
 ALIVE_COUNT=$(wc -l < "$DOMAIN_DIR/alive_$TIMESTAMP.txt")
 echo "[+] Found $ALIVE_COUNT alive hosts"
@@ -97,68 +76,24 @@ echo "[+] Filtering 403s for fuzzing..."
 grep -v " 403 " "$DOMAIN_DIR/alive_$TIMESTAMP.txt" | awk '{print $1}' > "$DOMAIN_DIR/fuzz_targets_$TIMESTAMP.txt"
 
 echo "[+] FUZZING 403 subdomains..."
-source $PYTHON_VENV/dirsearch/bin/activate
-for SUB in "$DOMAIN_DIR/fuzz_targets_$TIMESTAMP.txt"
-do
+source "$PYTHON_VENV/dirsearch/bin/activate"
+while read -r SUB; do
     echo "FUZZING $SUB..."
-    python3 dirsearch -u $SUB -w $TOOLS_DIR/wordlists/seclists/Discovery/Web-Content/directory-list-2.3-big.txt -x 403,301,429,302,404,500,501,502,503
-done
+    python3 "$TOOLS_DIR/dirsearch/dirsearch.py" -u "$SUB" -w "$WORDLIST_DIR/SecLists/Discovery/Web-Content/common.txt" -x 403,301,429,302,404,500,501,502,503 -e xml,json,sql,db,log,yml,yaml,bak,txt,tar.gz,zip,js,json,pdf,env,cgi
+done < "$DOMAIN_DIR/fuzz_targets_$TIMESTAMP.txt"
 deactivate
 
 echo "[+] Collecting parameters..."
-arjun -l "$DOMAIN_DIR/subdomains_$TIMESTAMP.txt" > "$DOMAIN_DIR/arjun-param_$TIMESTAMP.txt"
+arjun -i "$DOMAIN_DIR/subdomains_$TIMESTAMP.txt" > "$DOMAIN_DIR/arjun-param_$TIMESTAMP.txt"
 paramspider -l "$DOMAIN_DIR/subdomains_$TIMESTAMP.txt" 
 find "$DOMAIN_DIR/results" -type f -name "*.txt" -exec cat {} + | sort -u > "$DOMAIN_DIR/paramspider_all_urls_$TIMESTAMP.txt"
 mv results $DOMAIN_DIR/
-
-echo "[+] Collecting ASNs..."
-echo "[+] Resolving domain to IP..."
-ip=$(dig +short "$DOMAIN" | tail -n1)
-
-if [[ -z "$ip" ]]; then
-    echo "[-] Failed to resolve domain to IP."
-    exit 1
-fi
-
-echo "[+] Resolved IP: $ip"
-
-echo "[+] Getting ASN using Team Cymru..."
-asn=$(whois -h whois.cymru.com " -v $ip" | tail -n1 | awk '{print $1}')
-if [[ -z "$asn" ]]; then
-    echo "[-] Failed to get ASN for IP: $ip"
-    exit 1
-fi
-echo "[+] Found ASN: AS$asn"
-
-echo "[+] Fetching CIDRs for ASN using BGPView API..."
-cidrs=$(curl -s "https://api.bgpview.io/asn/$asn/prefixes" | jq -r '.data.ipv4_prefixes[].prefix')
-
-if [[ -z "$cidrs" ]]; then
-    echo "[-] Failed to get CIDRs for ASN $asn"
-    exit 1
-fi
-
-echo "[+] Found the following IP ranges:"
-echo "$cidrs"
-
-read -p "[?] Do you want to scan these ranges with Nmap? (y/n): " confirm
-if [[ "$confirm" != "y" ]]; then
-    echo "[*] Skipping scan."
-    exit 0
-fi
-
-mkdir -p "$DOMAIN_DIR/asn_scans/AS$asn"
-for cidr in $cidrs; do
-    echo "[*] Scanning $cidr..."
-    nmap -T4 -Pn -F "$cidr" -oA "$DOMAIN_DIR/asn_scans/AS$asn/scan_$(echo $cidr | tr '/' '_')"
-done
-echo "[+] Scanning complete. Results saved in "$DOMAIN_DIR/asn_scans/AS$asn/""
 
 echo "[+] Extracting IPs for port scanning..."
 grep -oP '\[\K[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' "$DOMAIN_DIR/alive_$TIMESTAMP.txt" | sort -u > "$DOMAIN_DIR/ip_targets.txt"
 
 echo "[+] Port scanning extracted IPs with nmap..."
-nmap -iL $DOMAIN_DIR/ip_targets.txt -sV -sC -A -T2
+nmap -iL $DOMAIN_DIR/ip_targets.txt -sV -sC -A -T2 -oA
 
 echo "[+] Filtering domains running IIS..."
 grep -i "iis" "$DOMAIN_DIR/alive_$TIMESTAMP.txt" | awk '{print $1}' > "$DOMAIN_DIR/iis_hosts_$TIMESTAMP.txt"
@@ -201,7 +136,7 @@ echo "[+] Scanning for Cross Site Scripting 3/4..."
 cat "$DOMAIN_DIR/allurls_$TIMESTAMP.txt" | grep -E "(login|signup|register|forgot|password|reset)" | httpx -silent | nuclei -t nuclei-templates/vulnerabilities/xss/ -severity critical,high
 
 echo "[+] Scanning for Cross Site Scripting 4/4..."
-cat "$DOMAIN_DIR/js_alive_$TIMESTAMP.txt" | Gxss -c 100 | sort -u | dalfox pipe -o "$DOMAIN_DIR/dom_xss_results.txt"
+cat "$DOMAIN_DIR/js_alive_$TIMESTAMP.txt" | Gxss -c 100 | sort -u | dalfox pipe -o "$DOMAIN_DIR/dom_xss_results_$TIMESTAMP.txt"
 
 echo "[+] Scanning for SSTI..."
 source "$PYTHON_VENV/sstimap/bin/activate"
@@ -231,4 +166,4 @@ python3 "$DOMAIN_DIR/allurls_$TIMESTAMP.txt" | tee "$DOMAIN_DIR/cors_results_$TI
 
 
 echo "[✓] Finished! Results in $DOMAIN_DIR"
-generate_html_report "$DOMAIN_DIR"
+

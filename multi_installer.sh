@@ -1,7 +1,7 @@
 #!/bin/bash
 # === multi_installer.sh - Cleaned Automated installer for security tools and wordlists ===
 # Author: Lone Wolf
-# Last updated: [6-7-2025]
+# Last updated: [7-7-2025]
 REAL_HOME=$(getent passwd $SUDO_USER | cut -d: -f6)
 export HOME=$REAL_HOME
 
@@ -29,7 +29,7 @@ sudo apt update -y && sudo apt upgrade -y
 
 # === Install Dependencies ===
 echo -e "${green}Installing dependencies...${reset}"
-sudo apt install -y python3 python3-pip pipx golang-go git wget unzip perl curl npm nodejs
+sudo apt install -y python3 python3-pip pipx golang-go git wget unzip perl curl npm nodejs jq
 pipx ensurepath
 GOBIN=$(go env GOPATH)/bin
 export PATH="$PATH:$GOBIN"
@@ -59,18 +59,24 @@ TOOLS=(
   "gxss"
   "crlfuzz"
   "trufflehog"
-  "gf"
-  "csrfscan"
-  "SSRFscan"
-  "dirsearch"
-  "corsy"
-  "wapiti"
-  "sqlmap"
-  "arjun"
-  "uro"
-  "nikto"
-  "nmap"
-  "massdns"
+  "Gf-Patterns"
+  "XSStrike"
+  "WafW00f"
+  "CSRFscan"
+  "SSRFmap"
+  "Dirsearch"
+  "Corsy"
+  "Wapiti"
+  "Paramspider"
+  "SQLmap"
+  "Arjun"
+  "Uro"
+  "Nikto"
+  "Nmap"
+  "Massdns"
+  "QSreplace"
+  "Chaos"
+  "alterx"
   "SecretFinder"
   "Only Wordlists"
   "Only Tools"
@@ -367,6 +373,25 @@ install_secretfinder() {
   deactivate
 }
 
+install_qsreplace() {
+  echo -e "${yellow}Installing qsreplace...${reset}"
+  go install -v github.com/tomnomnom/qsreplace@latest
+  sudo mv $GOBIN/qsreplace /usr/bin
+}
+
+install_chaos() {
+  echo -e "${green}Installing chaos...${reset}"
+  go install -v github.com/projectdiscovery/chaos-client/cmd/chaos@latest
+  sudo mv $GOBIN/chaos /usr/bin
+  echo -e "${yellow}This tool requires an API key to work properly.${reset}"
+}
+
+install_alterx() {
+  echo -e "${green}Installing alterx...${reset}"
+  go install -v github.com/projectdiscovery/alterx/cmd/alterx@latest
+  sudo mv $GOBIN/alterx /usr/bin
+}
+
 install_wordlists() {
   echo -e "${yellow}Downloading wordlists...${reset}"
   if [ ! -d "$WORDLIST_DIR/SecLists" ]; then
@@ -440,6 +465,10 @@ install_tools_only() {
   install_uro
   install_nikto
   install_nmap
+  install_massdns
+  install_qsreplace
+  install_chaos
+  install_alterx
 }
 
 install_all() {
@@ -482,6 +511,9 @@ install_all() {
   install_nikto
   install_nmap
   install_massdns
+  install_qsreplace
+  install_chaos
+  install_alterx
   install_secretfinder
   install_wordlists
 }
@@ -527,9 +559,12 @@ for choice in "${choices[@]}"; do
     37) install_nikto ;;
     38) install_nmap ;;
     39) install_massdns ;;
-    40) install_secretfinder ;;
-    41) install_wordlists ;;
-    42) install_tools_only ;;
+    40) install_qsreplace ;;
+    41) install_chaos ;;
+    42) install_alterx ;;
+    43) install_secretfinder ;;
+    44) install_wordlists ;;
+    45) install_tools_only ;;
     
     *) echo "Invalid choice: $choice" ;;
   esac
