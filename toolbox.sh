@@ -1,9 +1,32 @@
 #!/bin/bash
 # === multi_installer.sh - Cleaned Automated installer for security tools and wordlists ===
-# Author: Lone Wolf
-# Last updated: [7-7-2025]
+# Author: Sensei Whou
+# Last updated: [12-8-2025]
 REAL_HOME=$(getent passwd $SUDO_USER | cut -d: -f6)
 export HOME=$REAL_HOME
+echo "
+                                            ████████╗ ██████╗  ██████╗ ██╗     ██████╗  ██████╗ ██╗  ██╗                                         
+                                            ╚══██╔══╝██╔═══██╗██╔═══██╗██║     ██╔══██╗██╔═══██╗╚██╗██╔╝                                         
+                                               ██║   ██║   ██║██║   ██║██║     ██████╔╝██║   ██║ ╚███╔╝                                          
+                                               ██║   ██║   ██║██║   ██║██║     ██╔══██╗██║   ██║ ██╔██╗                                          
+                                               ██║   ╚██████╔╝╚██████╔╝███████╗██████╔╝╚██████╔╝██╔╝ ██╗                                         
+                                               ╚═╝    ╚═════╝  ╚═════╝ ╚══════╝╚═════╝  ╚═════╝ ╚═╝  ╚═╝                                         
+                                                                                                                                                 
+███╗   ███╗ █████╗ ██████╗ ███████╗    ██████╗ ██╗   ██╗    ███████╗███████╗███╗   ██╗███████╗███████╗██╗    ██╗    ██╗██╗  ██╗ ██████╗ ██╗   ██╗
+████╗ ████║██╔══██╗██╔══██╗██╔════╝    ██╔══██╗╚██╗ ██╔╝    ██╔════╝██╔════╝████╗  ██║██╔════╝██╔════╝██║    ██║    ██║██║  ██║██╔═══██╗██║   ██║
+██╔████╔██║███████║██║  ██║█████╗      ██████╔╝ ╚████╔╝     ███████╗█████╗  ██╔██╗ ██║███████╗█████╗  ██║    ██║ █╗ ██║███████║██║   ██║██║   ██║
+██║╚██╔╝██║██╔══██║██║  ██║██╔══╝      ██╔══██╗  ╚██╔╝      ╚════██║██╔══╝  ██║╚██╗██║╚════██║██╔══╝  ██║    ██║███╗██║██╔══██║██║   ██║██║   ██║
+██║ ╚═╝ ██║██║  ██║██████╔╝███████╗    ██████╔╝   ██║       ███████║███████╗██║ ╚████║███████║███████╗██║    ╚███╔███╔╝██║  ██║╚██████╔╝╚██████╔╝
+╚═╝     ╚═╝╚═╝  ╚═╝╚═════╝ ╚══════╝    ╚═════╝    ╚═╝       ╚══════╝╚══════╝╚═╝  ╚═══╝╚══════╝╚══════╝╚═╝     ╚══╝╚══╝ ╚═╝  ╚═╝ ╚═════╝  ╚═════╝ 
+                                                                                                                                                 
+                                                         ██╗    ██████╗                                                                          
+                                                        ███║   ██╔═████╗                                                                         
+                                                        ╚██║   ██║██╔██║                                                                         
+                                                         ██║   ████╔╝██║                                                                         
+                                                         ██║██╗╚██████╔╝                                                                         
+                                                         ╚═╝╚═╝ ╚═════╝                                                                          
+                                                                                                                                                 
+"
 
 # === Logging ===
 LOGFILE="$HOME/multi_installer.log"
@@ -20,7 +43,7 @@ PYTHON_VENV=$HOME/Python-Environments
 export WORDLIST_DIR="$TOOLS_DIR/wordlists"
 
 
-
+echo -e "${green}Creating directories...${reset}"
 mkdir -p "$WORDLIST_DIR" "$TOOLS_DIR" "$PYTHON_VENV"
 
 # === Update System ===
@@ -29,8 +52,8 @@ sudo apt update -y && sudo apt upgrade -y
 
 # === Install Dependencies ===
 echo -e "${green}Installing dependencies...${reset}"
-sudo apt install -y python3 python3-pip pipx golang-go git wget unzip perl curl npm nodejs jq
-pipx ensurepath
+sudo apt install -y python3 python3-pip pipx golang-go git wget unzip perl curl npm nodejs jq make gcc
+export PATH="$HOME/.local/bin:$PATH"
 GOBIN=$(go env GOPATH)/bin
 export PATH="$PATH:$GOBIN"
 
@@ -38,27 +61,27 @@ TOOLS=(
   "Install All"
   "Broken-Link-Checker"
   "Searchsploit"
-  "assetfinder"
-  "gau"
-  "httpx"
-  "katana"
-  "nuclei"
-  "subfinder"
-  "waybackurls"
-  "dnsx"
-  "hakrawler"
-  "amass"
-  "ffuf"
-  "gobuster"
-  "dalfox"
-  "kxss"
-  "subzy"
+  "Assetfinder"
+  "Gau"
+  "Httpx"
+  "Katana"
+  "Nuclei"
+  "Subfinder"
+  "Waybackurls"
+  "Dnsx"
+  "Hakrawler"
+  "Amass"
+  "Ffuf"
+  "Gobuster"
+  "Dalfox"
+  "KXSS"
+  "Subzy"
   "S3Scanner"
   "SSTImap"
-  "shortscan"
-  "gxss"
-  "crlfuzz"
-  "trufflehog"
+  "Shortscan"
+  "GXSS"
+  "CRLFuzz"
+  "Trufflehog"
   "Gf-Patterns"
   "XSStrike"
   "WafW00f"
@@ -76,8 +99,10 @@ TOOLS=(
   "Massdns"
   "QSreplace"
   "Chaos"
-  "alterx"
+  "AlterX"
+  "ASNmap"
   "SecretFinder"
+  "masscan"
   "Only Wordlists"
   "Only Tools"
 
@@ -181,6 +206,12 @@ install_dalfox() {
   sudo mv $GOBIN/dalfox /usr/bin
 }
 
+install_asnmap() {
+  echo -e "${green}Installing asnmap...${reset}"
+  go install -v github.com/projectdiscovery/asnmap/cmd/asnmap@latest
+  sudo mv $GOBIN/asnmap /usr/bin
+}
+
 install_kxss() {
   echo -e "${green}Installing kxss...${reset}"
   go install -v github.com/Emoe/kxss@latest
@@ -234,6 +265,7 @@ install_trufflehog(){
 install_gf_patterns(){
   echo -e "${green}Installing gf...${reset}"
   go install github.com/tomnomnom/gf@latest
+  sudo mv $GOBIN/gf /usr/bin
   mkdir -p $HOME/.gf
   echo -e "${green}Downloading gf patterns...${reset}"
   git clone https://github.com/1ndianl33t/Gf-Patterns.git "$WORDLIST_DIR/Gf-Patterns"
@@ -373,6 +405,15 @@ install_secretfinder() {
   deactivate
 }
 
+install_masscan() {
+  echo -e "${green}Installing masscan...${reset}"
+  git clone https://github.com/robertdavidgraham/masscan "$TOOLS_DIR/masscan"
+  cd "$TOOLS_DIR/masscan"
+  make
+  make install
+  cd $REAL_HOME
+}
+
 install_qsreplace() {
   echo -e "${yellow}Installing qsreplace...${reset}"
   go install -v github.com/tomnomnom/qsreplace@latest
@@ -469,6 +510,8 @@ install_tools_only() {
   install_qsreplace
   install_chaos
   install_alterx
+  install_asnmap
+  install_masscan
 }
 
 install_all() {
@@ -514,7 +557,9 @@ install_all() {
   install_qsreplace
   install_chaos
   install_alterx
+  install_asnmap
   install_secretfinder
+  install_masscan
   install_wordlists
 }
 
@@ -562,9 +607,11 @@ for choice in "${choices[@]}"; do
     40) install_qsreplace ;;
     41) install_chaos ;;
     42) install_alterx ;;
-    43) install_secretfinder ;;
-    44) install_wordlists ;;
-    45) install_tools_only ;;
+    43) install_asnmap ;;
+    44) install_secretfinder ;;
+    45) install_masscan ;;
+    46) install_wordlists ;;
+    47) install_tools_only ;;
     
     *) echo "Invalid choice: $choice" ;;
   esac

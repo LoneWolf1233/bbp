@@ -2,10 +2,7 @@
 
 # TOOLS TO ADD:
 # TRUFFLEHOG
-# DNSX
-# FUZZ EVERYTHING!!
-# WAPITI (MAYBE)
-# amass
+# ADD USAGE HELPER
 
 REAL_HOME=$(getent passwd $SUDO_USER | cut -d: -f6)
 export HOME=$REAL_HOME
@@ -18,6 +15,7 @@ mkdir -p "$OUTPUT"
 
 
 
+
 read -p "Enter domain or URL: " DOMAIN
 CLEAN_DOMAIN=$(echo "$DOMAIN" | sed -E 's~https?://~~' | sed 's~/.*~~')
 DOMAIN_DIR="$OUTPUT/$CLEAN_DOMAIN"
@@ -27,13 +25,13 @@ mkdir -p "$DOMAIN_DIR"
 
 
 echo "[+] Running subfinder..."
-subfinder -d "$CLEAN_DOMAIN" -silent -o "$DOMAIN_DIR/subfinder.txt" > /dev/null 2>&1
+subfinder -d "$CLEAN_DOMAIN" -all -silent -o "$DOMAIN_DIR/subfinder.txt" 
 
 echo "[+] Running assetfinder..."
-assetfinder --subs-only "$CLEAN_DOMAIN" > "$DOMAIN_DIR/assetfinder.txt" 2>/dev/null
+assetfinder --subs-only "$CLEAN_DOMAIN" > "$DOMAIN_DIR/assetfinder.txt" 
 
 echo "[+] Combining and deduplicating..."
-cat "$DOMAIN_DIR"/subfinder.txt "$DOMAIN_DIR"/assetfinder.txt | sort -u > "$DOMAIN_DIR/subdomains_$TIMESTAMP.txt"
+cat "$DOMAIN_DIR"/subfinder.txt "$DOMAIN_DIR"/assetfinder.txt  | sort -u > "$DOMAIN_DIR/subdomains_$TIMESTAMP.txt"
 
 SUBDOMAIN_COUNT=$(wc -l < "$DOMAIN_DIR/subdomains_$TIMESTAMP.txt")
 echo "[+] Found $SUBDOMAIN_COUNT unique subdomains."
@@ -101,20 +99,25 @@ IIS_COUNT=$(wc -l < "$DOMAIN_DIR/iis_hosts_$TIMESTAMP.txt")
 echo "[+] Found $IIS_COUNT IIS hosts. Saved to $DOMAIN_DIR/iis_hosts_$TIMESTAMP.txt"
 
 echo "[+] Attacking IIS URS in iis_hosts_$TIMESTAMP.txt with shortscan"
-for SUB in "$DOMAIN_DIR/iis_hosts_$TIMESTAMP.txt"
-do
-    echo "[+]Starting attack on $SUB"
-    shortscan $SUB
-done
+while IFS= read -r SUB; do
+    echo "[+] Starting attack on $SUB"
+    shortscan "$SUB"
+done < "$DOMAIN_DIR/iis_hosts_$TIMESTAMP.txt"
 
 echo "[+] Performing basic vulnerability scanning 1/2..."
-for SUB in "$DOMAIN_DIR/subdomains_$TIMESTAMP.txt"
-do
+while IFS= read -r SUB; do
     echo "[+] Starting vulnerability scanning on $SUB"
-    nikto -host $SUB | tee "$DOMAIN_DIR/nikto_results_$TIMESTAMP.txt"
-done
+    nikto -host "$SUB" | tee -a "$DOMAIN_DIR/nikto_results_$TIMESTAMP.txt"
+done < "$DOMAIN_DIR/subdomains_$TIMESTAMP.txt"
 
-echo '[+] Performing basic vulnerability scanning 2/2...'
+echo "[+] Performing basic vulnerability scanning 2/3..."
+echo "[+] Attacking IIS URS in iis_hosts_$TIMESTAMP.txt with shortscan"
+while IFS= read -r SUB; do
+    echo "[+] Starting attack on $SUB"
+    shortscan "$SUB"
+done < "$DOMAIN_DIR/iis_hosts_$TIMESTAMP.txt"
+
+echo '[+] Performing basic vulnerability scanning 3/3...'
 nuclei -l $DOMAIN_DIR/subdomains_$TIMESTAMP.txt -o "$DOMAIN_DIR/nuclei_results_$TIMESTAMP.txt"
 
 echo "[+] Scanning for subdomain takeover 1/3..."
@@ -137,27 +140,6 @@ cat "$DOMAIN_DIR/allurls_$TIMESTAMP.txt" | grep -E "(login|signup|register|forgo
 
 echo "[+] Scanning for Cross Site Scripting 4/4..."
 cat "$DOMAIN_DIR/js_alive_$TIMESTAMP.txt" | Gxss -c 100 | sort -u | dalfox pipe -o "$DOMAIN_DIR/dom_xss_results_$TIMESTAMP.txt"
-
-echo "[+] Scanning for SSTI..."
-source "$PYTHON_VENV/sstimap/bin/activate"
-python3 "$TOOLS_DIR/SSTImap/sstimap.py" -l "$DOMAIN_DIR/xss_params_$TIMESTAMP.txt" -o "$DOMAIN_DIR/ssti_results_$TIMESTAMP.txt"
-deactivate
-
-echo "[+] Scanning for SSRF..."
-source "$PYTHON_VENV/ssrfmap/bin/activate"
-python3 "$TOOLS_DIR/ssrfmap/ssrfmap.py" -l "$DOMAIN_DIR/filtered_domains_$TIMESTAMP.txt" -o "$DOMAIN_DIR/ssrf_results_$TIMESTAMP.txt"
-deactivate
-
-echo "[+] Scanning for Local File Inclusion..."
-echo $DOMAIN | gau | gf lfi | uro | sed 's/=.*/=/' | qsreplace "FUZZ" | sort -u | xargs -I{} ffuf -u {} -w "$TOOLS_DIR/wordlists/payloads/lfi.txt" -c -mr "root:(x|\*|\$[^\:]*):0:0:" -v
-
-echo "[+] Scanning for CRLF injection..."
-crlfuzz -l "$DOMAIN_DIR/allurls_$TIMESTAMP.txt" | tee "$DOMAIN_DIR/crlf_results_$TIMESTAMP.txt"
-
-echo "[+] Scanning for CSRF..."
-echo "[+] Starting Python Virtual Environment for CSRF Scanner..."
-source "$PYTHON_VENV/csrfscan/bin/activate"
-python3 "$TOOLS_DIR/csrfscan/bolt.py" -u $DOMAIN -l 3 | tee "$DOMAIN_DIR/csrf_results_$TIMESTAMP.txt"
 
 echo "[+] Scanning for CORS..."
 echo "[+] Starting Python Virtual Environment for Corsy..."
