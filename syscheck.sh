@@ -51,6 +51,20 @@ else
     echo -e "${red} Command Not Found${reset}"
 fi
 
+echo -e "${yellow}Checking RecX...${reset}"
+if command -v recx >/dev/null 2>&1; then
+    echo -e "${green} All Good!!!${reset}"
+else
+    echo -e "${red} Command Not Found${reset}"
+fi
+
+echo -e "${yellow}Checking UrlFinder...${reset}"
+if command -v urlfinder >/dev/null 2>&1; then
+    echo -e "${green} All Good!!!${reset}"
+else
+    echo -e "${red} Command Not Found${reset}"
+fi
+
 # Assetfinder
 echo -e "${yellow}Checking Assetfinder...${reset}"
 if command -v assetfinder >/dev/null 2>&1; then

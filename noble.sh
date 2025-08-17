@@ -150,7 +150,7 @@ if [ -s "$DOMAIN_DIR/filtered_domains_$TIMESTAMP.txt" ]; then
 
     # katana: if katana supports -l input; fallback to per-host loop
     if command -v katana >/dev/null 2>&1; then
-        katana -l "$DOMAIN_DIR/filtered_domains_$TIMESTAMP.txt" -d 5 -kf -jc -fx -ef woff,css,png,svg,jpg,woff2,jpeg,gif -o "$DOMAIN_DIR/katana_subs_$TIMESTAMP.txt" 2>/dev/null || true
+        katana -u "$DOMAIN_DIR/filtered_domains_$TIMESTAMP.txt" -d 5 -kf -jc -fx -ef woff,css,png,svg,jpg,woff2,jpeg,gif -o "$DOMAIN_DIR/katana_subs_$TIMESTAMP.txt" 2>/dev/null || true
     else
         echo "[!] katana not found; skipping."
     fi
@@ -163,7 +163,7 @@ cat "$DOMAIN_DIR/gausubs_$TIMESTAMP.txt" "$DOMAIN_DIR/waybacksubs_$TIMESTAMP.txt
 # === Parameter / JS / XSS reconnaissance ===
 echo "[+] Collecting Cross Site scripting parameters..."
 if [ -f "$DOMAIN_DIR/allurls_$TIMESTAMP.txt" ]; then
-    gf xss < "$DOMAIN_DIR/allurls_$TIMESTAMP.txt" | sort -u | tee "$DOMAIN_DIR/xss_params_$TIMESTAMP.txt" >/dev/null || true
+    cat "$DOMAIN_DIR/allurls_$TIMESTAMP.txt" | gf xss | sort -u | tee "$DOMAIN_DIR/xss_params_$TIMESTAMP.txt" >/dev/null || true
 fi
 
 echo "[+] Extracting js files..."

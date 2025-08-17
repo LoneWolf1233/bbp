@@ -103,6 +103,9 @@ TOOLS=(
   "ASNmap"
   "SecretFinder"
   "masscan"
+  "recx"
+  "urlfinder"
+  "linkfinder"
   "Only Wordlists"
   "Only Tools"
 
@@ -132,6 +135,12 @@ install_assetfinder() {
   echo -e "${green}Installing assetfinder...${reset}"
   go install -v github.com/tomnomnom/assetfinder@latest
   sudo mv $GOBIN/assetfinder /usr/bin
+}
+
+install_urlfinder() {
+  echo -e "${green}Installing urlfinder...${reset}"
+  go install -v github.com/projectdiscovery/urlfinder/cmd/urlfinder@latest
+  sudo mv $GOBIN/urlfinder /usr/bin
 }
 
 install_gau() {
@@ -210,6 +219,12 @@ install_asnmap() {
   echo -e "${green}Installing asnmap...${reset}"
   go install -v github.com/projectdiscovery/asnmap/cmd/asnmap@latest
   sudo mv $GOBIN/asnmap /usr/bin
+}
+
+install_recx() {
+  echo -e "${green} Installing recx...${reset}"
+  go install github.com/1hehaq/recx@latest
+  sudo mv $GOBIN/recx /usr/bin
 }
 
 install_kxss() {
@@ -340,6 +355,20 @@ install_corsy() {
     deactivate
   else
     echo -e "${yellow}Corsy already exists. Skipping...${reset}"
+  fi
+}
+
+install_linkfinder() {
+  echo -e "${green}Installing linkfinder...${reset}"
+  if [ ! -d "$TOOLS_DIR/LinkFinder" ]; then
+    python3 -m venv "$PYTHON_VENV/linkfinder"
+    source "$PYTHON_VENV/linkfinder/bin/activate"
+    pip install --upgrade pip setuptools
+    pip install git+https://github.com/GerbenJavado/LinkFinder.git
+    echo 'alias linkfinder="/home/sensei/Python-Environments/linkfinder/bin/python -m linkfinder"' >> $HOME/.bashrc
+    deactivate
+  else
+    echo -e "${yellow}LinkFinder already exists. Skipping...${reset}"
   fi
 }
 
@@ -512,6 +541,9 @@ install_tools_only() {
   install_alterx
   install_asnmap
   install_masscan
+  install_recx
+  install_urlfinder
+  install_linkfinder
 }
 
 install_all() {
@@ -560,6 +592,9 @@ install_all() {
   install_asnmap
   install_secretfinder
   install_masscan
+  install_recx
+  install_urlfinder
+  install_linkfinder
   install_wordlists
 }
 
@@ -610,10 +645,13 @@ for choice in "${choices[@]}"; do
     43) install_asnmap ;;
     44) install_secretfinder ;;
     45) install_masscan ;;
-    46) install_wordlists ;;
-    47) install_tools_only ;;
+    46) install_recx ;;
+    47) install_urlfinder ;;
+    48) install_linkfinder ;;
+    49) install_wordlists ;;
+    50) install_tools_only ;;
     
-    *) echo "Invalid choice: $choice" ;;
+    *) echo -e "${red}Invalid choice: $choice${reset}" ;;
   esac
 done
 

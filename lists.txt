@@ -1,0 +1,71 @@
+ Volume in drive C has no label.
+ Volume Serial Number is 0A24-0F68
+
+ Directory of C:\Program Files
+
+15/08/2025  10:56 §£    <DIR>          .
+15/08/2025  10:56 §£    <DIR>          ..
+01/07/2025  12:23 ££    <DIR>          4KDownload
+17/04/2024  08:22 §£    <DIR>          Adobe
+26/07/2025  03:47 ££    <DIR>          Audacity
+14/01/2023  12:56 §£    <DIR>          ChessBase
+26/05/2025  12:08 ££    <DIR>          Cisco Packet Tracer 8.2.2
+15/08/2025  11:07 §£    <DIR>          Common Files
+22/12/2024  01:26 §£    <DIR>          Core Temp
+26/07/2025  04:37 ££    <DIR>          dotnet
+13/04/2025  09:55 ££    <DIR>          DownloadHelper CoApp
+12/06/2024  06:55 ££    <DIR>          Elantech
+26/07/2025  03:58 ££    <DIR>          Git
+05/03/2023  01:06 §£    <DIR>          HandBrake
+24/07/2020  06:13 ££    <DIR>          Hasleo
+24/05/2024  12:20 ££    <DIR>          HxD
+13/06/2024  05:43 §£    <DIR>          IIS
+22/07/2020  05:55 §£    <DIR>          Insyde
+13/06/2024  05:43 §£    <DIR>          Intel
+14/05/2025  12:33 ££    <DIR>          Internet Explorer
+28/07/2025  11:48 §£    <DIR>          Java
+26/07/2025  04:13 ££    <DIR>          Kodi
+10/04/2025  01:13 ££    <DIR>          MediaHuman
+26/07/2025  04:19 ££    <DIR>          MediaInfo
+13/06/2024  05:43 §£    <DIR>          Microsoft
+17/12/2024  03:50 ££    <DIR>          Microsoft Office
+13/12/2024  01:46 ££    <DIR>          Microsoft Office 15
+03/06/2025  10:03 §£    <DIR>          Microsoft OneDrive
+10/05/2024  01:20 §£    <DIR>          Microsoft SQL Server
+03/11/2023  08:58 §£    <DIR>          Microsoft Update Health Tools
+07/05/2024  10:20 ££    <DIR>          Microsoft Visual Studio
+07/12/2019  12:14 ££    <DIR>          ModifiableWindowsApps
+13/06/2024  03:11 §£    <DIR>          MSBuild
+13/11/2023  11:46 §£    <DIR>          net.downloadhelper.coapp
+14/03/2024  10:59 ££    <DIR>          Notepad++
+15/08/2025  10:54 §£    <DIR>          NTLite
+12/06/2024  06:53 ££    <DIR>          NVIDIA Corporation
+09/01/2024  05:12 ££    <DIR>          obs-studio
+26/07/2025  07:54 ££    <DIR>          OpenVPN
+10/01/2021  01:29 ££    <DIR>          Oracle
+26/07/2025  06:56 ££    <DIR>          PackageManagement
+24/06/2020  02:31 ££    <DIR>          PowerISO
+01/04/2025  11:15 ££    <DIR>          Proton
+26/06/2025  04:39 ££    <DIR>          qBittorrent
+26/07/2025  07:18 ££    <DIR>          Raspberry Pi Imager
+13/06/2024  03:11 §£    <DIR>          Reference Assemblies
+29/06/2025  11:50 §£    <DIR>          RUXIM
+26/07/2025  06:51 ££    <DIR>          Sublime Text
+26/07/2025  06:29 ££    <DIR>          Subtitle Edit
+08/12/2023  09:17 ££    <DIR>          TechSmith
+13/06/2024  05:43 §£    <DIR>          UNP
+12/06/2024  08:36 ££    <DIR>          Windows Defender
+13/08/2025  11:28 ££    <DIR>          Windows Defender Advanced Threat Protection
+13/06/2024  04:58 §£    <DIR>          Windows Mail
+13/06/2024  04:58 §£    <DIR>          Windows Media Player
+13/06/2024  04:58 §£    <DIR>          Windows Multimedia Platform
+07/12/2019  12:50 ££    <DIR>          Windows NT
+13/06/2024  04:58 §£    <DIR>          Windows Photo Viewer
+13/06/2024  04:58 §£    <DIR>          Windows Portable Devices
+07/12/2019  12:31 ££    <DIR>          Windows Security
+26/07/2025  06:56 ££    <DIR>          WindowsPowerShell
+26/07/2025  06:54 ££    <DIR>          WinRAR
+23/08/2024  08:59 ££    <DIR>          Wonderdraft
+06/08/2025  01:18 ££    <DIR>          WSL
+               0 File(s)              0 bytes
+              64 Dir(s)  40.403.197.952 bytes free
