@@ -50,11 +50,14 @@ mkdir -p "$WORDLIST_DIR" "$TOOLS_DIR" "$PYTHON_VENV"
 
 # === Update System ===
 echo -e "${green}Updating and upgrading your OS...${reset}"
-apt update -y && sudo apt upgrade -y
+pkg update -y && sudo pkg upgrade -y
 
 # === Install Dependencies ===
 echo -e "${green}Installing dependencies...${reset}"
-apt install -y python3 python3-pip pipx golang-go git wget unzip perl curl npm nodejs jq make gcc
+pkg install -y python python-pip pipx golang git wget unzip perl curl npm nodejs jq make clang
+pip install --user pipx
+echo 'export PATH=$HOME/.local/bin:$PATH' >> ~/.bashrc
+source ~/.bashrc
 export PATH="$HOME_V/.local/bin:$PATH"
 GOBIN=$(go env GOPATH)/bin
 export PATH="$PATH:$GOBIN"
