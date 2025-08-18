@@ -1,5 +1,5 @@
 #!/bin/bash
-# === multi_installer.sh - Cleaned Automated installer for security tools and wordlists ===
+# === multi_installer.sh - Cleaned Automated installer for security tools and wordlists for Android's Termux ===
 # Author: Sensei Whou
 # Last updated: [18-8-2025]
 REAL_HOME=$(getent passwd $SUDO_USER | cut -d: -f6)
@@ -40,6 +40,7 @@ reset='\033[0m'
 # === Setup ===
 TOOLS_DIR=$HOME/tools
 PYTHON_VENV=$HOME/Python-Environments
+TERM_PATH=/data/data/com.termux/files/usr/bin
 export WORDLIST_DIR="$TOOLS_DIR/wordlists"
 
 
@@ -52,7 +53,7 @@ sudo apt update -y && sudo apt upgrade -y
 
 # === Install Dependencies ===
 echo -e "${green}Installing dependencies...${reset}"
-sudo apt install -y python3 python3-venv python3-pip pipx golang-go git wget unzip perl curl npm nodejs jq make gcc
+sudo apt install -y python3 python3-pip pipx golang-go git wget unzip perl curl npm nodejs jq make gcc
 export PATH="$HOME/.local/bin:$PATH"
 GOBIN=$(go env GOPATH)/bin
 export PATH="$PATH:$GOBIN"
@@ -134,115 +135,115 @@ install_searchsploit() {
 install_assetfinder() {
   echo -e "${green}Installing assetfinder...${reset}"
   go install -v github.com/tomnomnom/assetfinder@latest
-  sudo mv $GOBIN/assetfinder /usr/bin
+  sudo mv $GOBIN/assetfinder $TERM_PATH
 }
 
 install_urlfinder() {
   echo -e "${green}Installing urlfinder...${reset}"
   go install -v github.com/projectdiscovery/urlfinder/cmd/urlfinder@latest
-  sudo mv $GOBIN/urlfinder /usr/bin
+  sudo mv $GOBIN/urlfinder $TERM_PATH
 }
 
 install_gau() {
   echo -e "${green}Installing gau...${reset}"
   go install -v github.com/lc/gau/v2/cmd/gau@latest
-  sudo mv $GOBIN/gau /usr/bin
+  sudo mv $GOBIN/gau $TERM_PATH
 }
 
 install_httpx() {
   echo -e "${green}Installing httpx...${reset}"
   go install -v github.com/projectdiscovery/httpx/cmd/httpx@latest
-  sudo mv $GOBIN/httpx /usr/bin
+  sudo mv $GOBIN/httpx $TERM_PATH
 }
 
 install_katana() {
   echo -e "${green}Installing katana...${reset}"
   go install -v github.com/projectdiscovery/katana/cmd/katana@latest
-  sudo mv $GOBIN/katana /usr/bin
+  sudo mv $GOBIN/katana $TERM_PATH
 }
 
 install_nuclei() {
   echo -e "${green}Installing nuclei...${reset}"
   go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
-  sudo mv $GOBIN/nuclei /usr/bin
+  sudo mv $GOBIN/nuclei $TERM_PATH
 }
 
 install_subfinder() {
   echo -e "${green}Installing subfinder...${reset}"
   go install -v github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest
-  sudo mv $GOBIN/subfinder /usr/bin
+  sudo mv $GOBIN/subfinder $TERM_PATH
 }
 
 install_waybackurls() {
   echo -e "${green}Installing waybackurls...${reset}"
   go install -v github.com/tomnomnom/waybackurls@latest
-  sudo mv $GOBIN/waybackurls /usr/bin
+  sudo mv $GOBIN/waybackurls $TERM_PATH
 }
 
 install_dnsx() {
   echo -e "${green}Installing dnsx...${reset}"
   go install -v github.com/projectdiscovery/dnsx/cmd/dnsx@latest
-  sudo mv $GOBIN/dnsx /usr/bin
+  sudo mv $GOBIN/dnsx $TERM_PATH
 }
 
 install_hakrawler() {
   echo -e "${green}Installing hakrawler...${reset}"
   go install -v github.com/hakluke/hakrawler@latest
-  sudo mv $GOBIN/hakrawler /usr/bin
+  sudo mv $GOBIN/hakrawler $TERM_PATH
 }
 
 install_amass() {
   echo -e "${green}Installing amass...${reset}"
   go install -v github.com/owasp-amass/amass/v4/...@master
-  sudo mv $GOBIN/amass /usr/bin
+  sudo mv $GOBIN/amass $TERM_PATH
 }
 
 install_ffuf() {
   echo -e "${green}Installing ffuf...${reset}"
   go install -v github.com/ffuf/ffuf/v2@latest
-  sudo mv $GOBIN/ffuf /usr/bin
+  sudo mv $GOBIN/ffuf $TERM_PATH
 }
 
 install_gobuster() {
   echo -e "${green}Installing gobuster...${reset}"
   go install -v github.com/OJ/gobuster/v3@latest
-  sudo mv $GOBIN/gobuster /usr/bin
+  sudo mv $GOBIN/gobuster $TERM_PATH
 }
 
 install_dalfox() {
   echo -e "${green}Installing dalfox...${reset}"
   go install -v github.com/hahwul/dalfox/v2@latest
-  sudo mv $GOBIN/dalfox /usr/bin
+  sudo mv $GOBIN/dalfox $TERM_PATH
 }
 
 install_asnmap() {
   echo -e "${green}Installing asnmap...${reset}"
   go install -v github.com/projectdiscovery/asnmap/cmd/asnmap@latest
-  sudo mv $GOBIN/asnmap /usr/bin
+  sudo mv $GOBIN/asnmap $TERM_PATH
 }
 
 install_recx() {
   echo -e "${green} Installing recx...${reset}"
   go install github.com/1hehaq/recx@latest
-  sudo mv $GOBIN/recx /usr/bin
+  sudo mv $GOBIN/recx $TERM_PATH
 }
 
 install_kxss() {
   echo -e "${green}Installing kxss...${reset}"
   go install -v github.com/Emoe/kxss@latest
-  sudo mv $GOBIN/kxss /usr/bin
+  sudo mv $GOBIN/kxss $TERM_PATH
 }
 
 install_subzy() {
   echo -e "${green}Installing subzy...${reset}"
   go install -v github.com/PentestPad/subzy@latest
-  sudo mv $GOBIN/subzy /usr/bin
+  sudo mv $GOBIN/subzy $TERM_PATH
 }
 
 install_s3scanner() {
   echo -e "${green}Installing s3scanner...${reset}"
   go install -v github.com/sa7mon/s3scanner@latest
-  sudo mv $GOBIN/s3scanner /usr/bin
+  sudo mv $GOBIN/s3scanner $TERM_PATH
 }
 
 install_sstimap() {
@@ -257,19 +258,19 @@ install_sstimap() {
 install_shortscan() {
   echo -e "${green}Installing shortscan...${reset}"
   go install -v github.com/bitquark/shortscan/cmd/shortscan@latest
-  sudo mv $GOBIN/shortscan /usr/bin
+  sudo mv $GOBIN/shortscan $TERM_PATH
 }
 
 install_gxss() {
   echo -e "${green}Installing gxss...${reset}"
   go install -v github.com/KathanP19/Gxss@latest
-  sudo mv $GOBIN/Gxss /usr/bin
+  sudo mv $GOBIN/Gxss $TERM_PATH
 }
 
 install_crlfuzz(){
   echo -e "${green}Installing crlfuzz...${reset}"
   go install -v github.com/dwisiswant0/crlfuzz/cmd/crlfuzz@latest
-  sudo mv $GOBIN/crlfuzz /usr/bin
+  sudo mv $GOBIN/crlfuzz $TERM_PATH
 }
 
 install_trufflehog(){
@@ -280,7 +281,7 @@ install_trufflehog(){
 install_gf_patterns(){
   echo -e "${green}Installing gf...${reset}"
   go install github.com/tomnomnom/gf@latest
-  sudo mv $GOBIN/gf /usr/bin
+  sudo mv $GOBIN/gf $TERM_PATH
   mkdir -p $HOME/.gf
   echo -e "${green}Downloading gf patterns...${reset}"
   git clone https://github.com/1ndianl33t/Gf-Patterns.git "$WORDLIST_DIR/Gf-Patterns"
@@ -446,20 +447,20 @@ install_masscan() {
 install_qsreplace() {
   echo -e "${yellow}Installing qsreplace...${reset}"
   go install -v github.com/tomnomnom/qsreplace@latest
-  sudo mv $GOBIN/qsreplace /usr/bin
+  sudo mv $GOBIN/qsreplace $TERM_PATH
 }
 
 install_chaos() {
   echo -e "${green}Installing chaos...${reset}"
   go install -v github.com/projectdiscovery/chaos-client/cmd/chaos@latest
-  sudo mv $GOBIN/chaos /usr/bin
+  sudo mv $GOBIN/chaos $TERM_PATH
   echo -e "${yellow}This tool requires an API key to work properly.${reset}"
 }
 
 install_alterx() {
   echo -e "${green}Installing alterx...${reset}"
   go install -v github.com/projectdiscovery/alterx/cmd/alterx@latest
-  sudo mv $GOBIN/alterx /usr/bin
+  sudo mv $GOBIN/alterx $TERM_PATH
 }
 
 install_wordlists() {
