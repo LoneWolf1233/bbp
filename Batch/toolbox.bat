@@ -41,111 +41,161 @@ echo ===========================================
 echo                ToolBox
 echo             by SenseiWhou
 echo ===========================================
-echo 1. Install
-echo 2. Install
-echo 3. Install
-echo 4. Install
-echo 5. Install
-echo 6. Install
-echo 7. Install
-echo 8. Install
-echo 9. Install
-echo 10. Install
-echo 11. Install
-echo 12. Install
-echo 13. Install
-echo 14. Install
-echo 15. Install
-echo 16. Install
-echo 17. Install
-echo 18. Install
-echo 19. Install
-echo 20. Install
-echo 21. Install
-echo 22. Install
-echo 23. Install
-echo 24. Install
-echo 25. Install
-echo 26. Install
-echo 27. Install
-echo 28. Install
-echo 29. Install
-echo 30. Install
-echo 31. Install
-echo 32. Install
-echo 33. Install
-echo 34. Install
-echo 35. Install
-echo 36. Install
-echo 37. Install
-echo 38. Install
-echo 39. Install
-echo 40. Install
-echo 41. Install
-echo 42. Install
-echo 43. Install
-echo 44. Install
-echo 45. Install
-echo 46. Install
-echo 47. Install
-echo 48. Install
-echo 49. Install
-echo 50. Install
+echo 1. Install All
+echo 2. Install Broken-Link-Checker
+echo 3. Install Assetfinder
+echo 4. Install Gau
+echo 5. Install Httpx
+echo 6. Install Katana
+echo 7. Install Nuclei
+echo 8. Install Subfinder
+echo 9. Install Waybackurls
+echo 10. Install Dnsx
+echo 11. Install Hakrawler
+echo 12. Install Amass
+echo 13. Install Ffuf
+echo 14. Install Gobuster
+echo 15. Install Dalfox
+echo 16. Install KXSS
+echo 17. Install Subzy
+echo 18. Install S3Scanner
+echo 19. Install SSTImap
+echo 20. Install Shortscan
+echo 21. Install GXSS
+echo 22. Install CRLFuzz
+echo 23. Install Trufflehog
+echo 24. Install Gf-Patterns
+echo 25. Install XSStrike
+echo 26. Install Wafw00f
+echo 27. Install CSRFscan
+echo 28. Install SSRFmap
+echo 29. Install Dirsearch
+echo 30. Install Corsy
+echo 31. Install Wapiti
+echo 32. Install Paramspider
+echo 33. Install SQLmap
+echo 34. Install Arjun
+echo 35. Install Uro
+echo 36. Install Nikto
+echo 37. Install Nmap
+echo 38. Install Massdns
+echo 39. Install QSreplace
+echo 40. Install Chaos
+echo 41. Install AlterX
+echo 42. Install ASNmap
+echo 43. Install SecretFinder
+echo 44. Install masscan
+echo 45. Install recx
+echo 46. Install urlfinder
+echo 47. Install linkfinder
+echo 48. Install Only Wordlists
+echo 49. Install Only Tools
 echo ===========================================
 set /p choices="Select tools (e.g. 1 2 3): "
 
 REM Handle multiple choices
 for %%i in (%choices%) do (
-    if %%i ==1 goto
-    if %%i ==2 goto
-    if %%i ==3 goto
-    if %%i ==4 goto
-    if %%i ==5 goto
-    if %%i ==6 goto
-    if %%i ==7 goto
-    if %%i ==8 goto
-    if %%i ==9 goto
-    if %%i ==10 goto
-    if %%i ==11 goto
-    if %%i ==12 goto
-    if %%i ==13 goto
-    if %%i ==14 goto
-    if %%i ==15 goto
-    if %%i ==16 goto
-    if %%i ==17 goto
-    if %%i ==18 goto
-    if %%i ==19 goto
-    if %%i ==20 goto
-    if %%i ==21 goto
-    if %%i ==22 goto
-    if %%i ==23 goto
-    if %%i ==24 goto
-    if %%i ==25 goto
-    if %%i ==26 goto
-    if %%i ==27 goto
-    if %%i ==28 goto
-    if %%i ==29 goto
-    if %%i ==30 goto
-    if %%i ==31 goto
-    if %%i ==32 goto
-    if %%i ==33 goto
-    if %%i ==34 goto
-    if %%i ==35 goto
-    if %%i ==36 goto
-    if %%i ==37 goto
-    if %%i ==38 goto
-    if %%i ==39 goto
-    if %%i ==40 goto
-    if %%i ==41 goto
-    if %%i ==42 goto
-    if %%i ==43 goto
-    if %%i ==44 goto
-    if %%i ==45 goto
-    if %%i ==46 goto
-    if %%i ==47 goto
-    if %%i ==48 goto
-    if %%i ==49 goto
-    if %%i ==50 goto
+    if %%i ==1 goto install_all
+    if %%i ==2 goto broken-link-checker
+    if %%i ==3 goto assetfinder
+    if %%i ==4 goto gau
+    if %%i ==5 goto httpx
+    if %%i ==6 goto katana
+    if %%i ==7 goto nuclei
+    if %%i ==8 goto subfinder
+    if %%i ==9 goto waybackurls
+    if %%i ==10 goto dnsx
+    if %%i ==11 goto hakrawler
+    if %%i ==12 goto amass
+    if %%i ==13 goto ffuf
+    if %%i ==14 goto gobuster
+    if %%i ==15 goto dalfox
+    if %%i ==16 goto kxss
+    if %%i ==17 goto subzy
+    if %%i ==18 goto s3scanner
+    if %%i ==19 goto sstimap
+    if %%i ==20 goto shortscan
+    if %%i ==21 goto gxss
+    if %%i ==22 goto crlfuzz
+    if %%i ==23 goto trufflehog
+    if %%i ==24 goto gf_patterns
+    if %%i ==25 goto xsstrike
+    if %%i ==26 goto wafw00f
+    if %%i ==27 goto csrfscan
+    if %%i ==28 goto ssrfmap
+    if %%i ==29 goto dirsearch
+    if %%i ==30 goto corsy
+    if %%i ==31 goto wapiti
+    if %%i ==32 goto paramspider
+    if %%i ==33 goto sqlmap
+    if %%i ==34 goto arjun
+    if %%i ==35 goto uro
+    if %%i ==36 goto nikto
+    if %%i ==37 goto nmap
+    if %%i ==38 goto massdns
+    if %%i ==39 goto qsreplace
+    if %%i ==40 goto chaos
+    if %%i ==41 goto alterx
+    if %%i ==42 goto secretfinder
+    if %%i ==43 goto massscan
+    if %%i ==44 goto recx 
+    if %%i ==45 goto urlfinder
+    if %%i ==46 goto linkfinder
+    if %%i ==47 goto asnmap
+    if %%i ==48 goto wordlists
+    if %%i ==49 goto tools
 )
 pause
 goto menu
+
+REM broken-link-checker
+REM NodeJS / NPM
+:broken-link-checker
+cls
+if exist "C:\Users\%username%\Bug-Bounty\node-v24.6.0-x64.msi" (
+    echo Setup file already exists... Skipping...
+) else (
+    echo Downloading NodeJs / npm...
+    powershell -c "Invoke-WebRequest -Uri 'https://nodejs.org/dist/v24.6.0/node-v24.6.0-x64.msi' -OutFile 'C:\Users\%username%\Bug-Bounty\node-v24.6.0-x64.msi'"
+    echo Done
+)
+
+REM === Check if npm is already installed and installing if not. ===
+where npm >nul 2>nul
+if %errorlevel%==0 (
+    echo npm is already installed. Skipping...
+) else (
+    echo Installing npm...
+    start /wait "" "C:\Users\%username%\Bug-Bounty\node-v24.6.0-x64.msi" /passive
+    echo Done
+)
+
+REM === Check if broken-link-checker is already installed and installing if not === 
+where broken-link-checker >nul 2>nul
+if %errorlevel%==0 (
+    echo broken-link-checker is already installed. Skipping...
+) else (
+    echo Installing Broken-Link-Checker...
+    npm install broken-link-checker 
+)
+
+:assetfinder
+REM === Check if assetfinder is already installed and installing if not. ===
+where assetfinder >nul 2>nul
+if %errorlevel%==0 (
+    echo assetfinder is already installed. Skipping...
+) else (
+    echo Installing assetfinder...
+    go install -v github.com/tomnomnom/assetfinder@latest
+)
+
+:urlfinder
+REM === Check if urlfinder is already installed and installing if not ===
+where urlfinder >nul 2>nul
+if %errorlevel%==0 (
+    echo urlfinder is already installed. Skipping...
+) else (
+    echo Installing urlfinder...
+      go install -v github.com/projectdiscovery/urlfinder/cmd/urlfinder@latest
+)
+
