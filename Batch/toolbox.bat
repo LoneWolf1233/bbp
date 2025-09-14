@@ -196,6 +196,200 @@ if %errorlevel%==0 (
     echo urlfinder is already installed. Skipping...
 ) else (
     echo Installing urlfinder...
-      go install -v github.com/projectdiscovery/urlfinder/cmd/urlfinder@latest
+    go install -v github.com/projectdiscovery/urlfinder/cmd/urlfinder@latest
 )
+
+:gau
+REM === Check if gau is installed and install if not ===
+cls
+where gau >nul 2>nul
+if %errorlevel%==0 (
+    echo gau is already installed. Skipping...
+) else (
+    echo Installing Gau...
+    go install -v github.com/lc/gau/v2/cmd/gau@latest
+)
+
+:httpx
+REM === Check if httpx is installed and install if not ===
+cls
+where httpx >nul 2>nul
+if %errorlevel%==0 (
+    echo httpx is already installed. Skipping...
+) else (
+    echo Installing httpx...
+    go install -v github.com/projectdiscovery/httpx/cmd/httpx@latest
+)
+
+:katana
+REM === Check if katana is installed and install if not ===
+cls
+where katana >nul 2>nul
+if %errorlevel%==0 (
+    echo Katana is already installed. Skipping...
+) else (
+    echo Installing httpx...
+    go install -v github.com/projectdiscovery/katana/cmd/katana@latest
+)
+
+:nuclei
+REM === Check if nuclei is installed and install if not ===
+cls
+where nuclei >nul 2>nul
+if %errorlevel%==0 (
+    echo Nuclei is already installed. Skipping...
+) else (
+    echo Installing Nuclei...
+    go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
+)
+
+:subfinder
+REM === Check if subfinder is installed and install if not ===
+cls
+where subfinder >nul 2>nul
+if %errorlevel%==0 (
+    echo subfinder is already installed. Skipping...
+) else (
+    echo Installing Subfinder...
+    go install -v github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest
+)
+
+:waybackurls
+REM === Check if waybackurls is installed and install if not ===
+cls
+where waybackurls >nul 2>nul
+if %errorlevel%==0 (
+    echo waybackurls is already installed. Skipping...
+) else (
+    echo Installing waybackurls...
+    go install -v github.com/tomnomnom/waybackurls@latest
+)
+
+:dnsx
+REM === Check if dnsx is installed and install if not ===
+cls
+where dnsx >nul 2>nul
+if %errorlevel%==0 (
+    echo Dnsx is already installed. Skipping...
+) else (
+    echo Installing Dnsx...
+    go install -v github.com/projectdiscovery/dnsx/cmd/dnsx@latest
+)
+
+:hakrawler
+REM === Check if hakrawler is installed and install if not ===
+cls
+where hakrawler >nul 2>nul
+if %errorlevel%==0 (
+    echo hakrawler is already installed. Skipping...
+) else (
+    echo Installing Hakrawler...
+    go install -v github.com/hakluke/hakrawler@latest
+)
+
+:amass
+REM === Check if amass is installed and install if not ===
+cls
+where amass >nul 2>nul
+if %errorlevel%==0 (
+    echo amass is already installed. Skipping...
+) else (
+    echo Installing Amass...
+    go install -v github.com/owasp-amass/amass/v4/...@master
+)
+
+:ffuf
+REM === Check if ffuf is installed and install if not ===
+cls
+where ffuf >nul 2>nul
+if %errorlevel%==0 (
+    echo ffuf is already installed. Skipping...
+) else (
+    echo Installing ffuf...
+    go install -v github.com/OJ/gobuster/v3@latest   
+)
+
+:gobuster
+REM === Check if gobuster is installed and install if not ===
+cls
+where gobuster >nul 2>nul
+if %errorlevel%==0 (
+    echo gobuster is already installed. Skipping...
+) else (
+    echo Installing Gobuster...
+    go install -v github.com/OJ/gobuster/v3@latest
+)
+
+:dalfox
+REM === Check if dalfox is installed and install if not ===
+cls
+where dalfox >nul 2>nul
+if %errorlevel%==0 (
+    echo dalfox is already installed. Skipping...
+) else (
+    echo Installing Dalfox...
+    go install -v github.com/hahwul/dalfox/v2@latest
+)
+
+:asnmap
+REM === Check if asnmap is installed and install if not ===
+cls
+where asnmap >nul 2>nul
+if %errorlevel%==0 (
+    echo asnmap is already installed. Skipping...
+) else (
+    echo Installing ASNmap...
+    go install -v github.com/projectdiscovery/asnmap/cmd/asnmap@latest   
+)
+
+:recx
+REM === Check if recx is installed and install if not ===
+cls
+where recx >nul 2>nul
+if %errorlevel%==0 (
+    echo recx is already installed. Skipping...
+) else (
+    echo Installing RecX...
+    go install github.com/1hehaq/recx@latest
+)
+
+:kxss
+REM === Check if kxss is installed and install if not ===
+cls
+where kxss >nul 2>nul
+if %errorlevel%==0 (
+    echo kxss is already installed. Skipping...
+    go install -v github.com/Emoe/kxss@latest
+)
+
+:subzy
+REM === Check if subzy is installed and install if not ===
+cls
+where subzy >nul 2>nul
+if %errorlevel%==0 (
+    echo subzy is already installed. Skipping...
+) else (
+    echo Installing Subzy...
+    go install -v github.com/PentestPad/subzy@latest
+)
+
+:s3scanner
+REM === Check if s3scanner is installed and install if not ===
+cls
+where s3scanner >nul 2>nul
+if %errorlevel%==0 (
+    echo s3scanner is already installed. Skipping...
+) else (
+    echo Installing s3scanner...
+    go install -v github.com/sa7mon/s3scanner@latest
+)
+
+
+
+
+
+
+
+
+
 
