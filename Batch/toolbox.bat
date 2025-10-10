@@ -3,22 +3,21 @@ title ToolBox by SenseiWhou
 color 0a
 echo Creating Directories
 md C:\Users\%username%\Bug-Bounty
+md C:\Users\%username%\Bug-Bounty\venvs
+md C:\Users\%username%\Bug-Bounty\tools
+set "PYTHON_VENV=C:\Users\%username%\Bug-Bounty\venvs"
+set "TOOLS_DIR=C:\Users\%username%\Bug-Bounty\tools"
 echo Done
 echo Installing prerequisites...
 
 REM Golang 
-if exist "C:\Users\%username%\Bug-Bounty\go1.25.0.windows-amd64.msi" (
-    echo Setup file already exists... Skipping...
-) else (
-    echo Downloading Go Language...
-    powershell -c "Invoke-WebRequest -Uri 'https://go.dev/dl/go1.25.0.windows-amd64.msi' -OutFile 'C:\Users\%username%\Bug-Bounty\go1.25.0.windows-amd64.msi'"
-    echo Done
-)
-REM === Check if Go is already installed ===
 where go >nul 2>nul
 if %errorlevel%==0 (
     echo Go is already installed. Skipping...
 ) else (
+    echo Downloading Go Language...
+    powershell -c "Invoke-WebRequest -Uri 'https://go.dev/dl/go1.25.0.windows-amd64.msi' -OutFile 'C:\Users\%username%\Bug-Bounty\go1.25.0.windows-amd64.msi'"
+    echo Done
     echo Installing Go...
     start /wait "" "C:\Users\%username%\Bug-Bounty\go1.25.0.windows-amd64.msi" /passive
     echo Done
@@ -34,6 +33,19 @@ if %errorlevel%==0 (
     powershell -c "Invoke-WebRequest -Uri 'https://www.python.org/ftp/python/3.12.3/python-3.12.3-amd64.exe' -OutFile '%USERPROFILE%\Bug-Bounty\python-installer.exe'"
     start /wait "" "%USERPROFILE%\Bug-Bounty\python-installer.exe" /quiet InstallAllUsers=1 PrependPath=1
 )
+
+REM pipx
+echo Checking if pipx is installed...
+where pipx >nul 2>nul
+if %errorlevel%==0 (
+    echo pipx is already installed
+) else (
+    echo Installing pipx...
+    pip install --user pipx
+    cd %USERPROFILE%\AppData\Roaming\Python\Python312\Scripts
+    .\pipx.exe ensurepath
+)
+
 
 :menu
 cls
@@ -63,33 +75,28 @@ echo 19. Install SSTImap
 echo 20. Install Shortscan
 echo 21. Install GXSS
 echo 22. Install CRLFuzz
-echo 23. Install Trufflehog
-echo 24. Install Gf-Patterns
-echo 25. Install XSStrike
-echo 26. Install Wafw00f
-echo 27. Install CSRFscan
-echo 28. Install SSRFmap
-echo 29. Install Dirsearch
-echo 30. Install Corsy
-echo 31. Install Wapiti
-echo 32. Install Paramspider
-echo 33. Install SQLmap
-echo 34. Install Arjun
-echo 35. Install Uro
-echo 36. Install Nikto
-echo 37. Install Nmap
-echo 38. Install Massdns
-echo 39. Install QSreplace
-echo 40. Install Chaos
-echo 41. Install AlterX
-echo 42. Install ASNmap
-echo 43. Install SecretFinder
-echo 44. Install masscan
-echo 45. Install recx
-echo 46. Install urlfinder
-echo 47. Install linkfinder
-echo 48. Install Only Wordlists
-echo 49. Install Only Tools
+echo 23. Install XSStrike
+echo 24. Install Wafw00f
+echo 25. Install CSRFscan
+echo 26. Install SSRFmap
+echo 27. Install Dirsearch
+echo 28. Install Corsy
+echo 29. Install Wapiti
+echo 30. Install Paramspider
+echo 31. Install SQLmap
+echo 32. Install Arjun
+echo 33. Install Uro
+echo 34. Install Nmap
+echo 35. Install QSreplace
+echo 36. Install Chaos
+echo 37. Install AlterX
+echo 38. Install ASNmap
+echo 39. Install SecretFinder
+echo 40. Install recx
+echo 41. Install urlfinder
+echo 42. Install linkfinder
+echo 43. Install gotator
+echo 44. Install Only Tools
 echo ===========================================
 set /p choices="Select tools (e.g. 1 2 3): "
 
@@ -117,33 +124,28 @@ for %%i in (%choices%) do (
     if %%i ==20 goto shortscan
     if %%i ==21 goto gxss
     if %%i ==22 goto crlfuzz
-    if %%i ==23 goto trufflehog
-    if %%i ==24 goto gf_patterns
-    if %%i ==25 goto xsstrike
-    if %%i ==26 goto wafw00f
-    if %%i ==27 goto csrfscan
-    if %%i ==28 goto ssrfmap
-    if %%i ==29 goto dirsearch
-    if %%i ==30 goto corsy
-    if %%i ==31 goto wapiti
-    if %%i ==32 goto paramspider
-    if %%i ==33 goto sqlmap
-    if %%i ==34 goto arjun
-    if %%i ==35 goto uro
-    if %%i ==36 goto nikto
-    if %%i ==37 goto nmap
-    if %%i ==38 goto massdns
-    if %%i ==39 goto qsreplace
-    if %%i ==40 goto chaos
-    if %%i ==41 goto alterx
-    if %%i ==42 goto secretfinder
-    if %%i ==43 goto massscan
-    if %%i ==44 goto recx 
-    if %%i ==45 goto urlfinder
-    if %%i ==46 goto linkfinder
-    if %%i ==47 goto asnmap
-    if %%i ==48 goto wordlists
-    if %%i ==49 goto tools
+    if %%i ==23 goto xsstrike
+    if %%i ==24 goto wafw00f
+    if %%i ==25 goto csrfscan
+    if %%i ==26 goto ssrfmap
+    if %%i ==27 goto dirsearch
+    if %%i ==28 goto corsy
+    if %%i ==29 goto wapiti
+    if %%i ==30 goto paramspider
+    if %%i ==31 goto sqlmap
+    if %%i ==32 goto arjun
+    if %%i ==33 goto uro
+    if %%i ==34 goto nmap
+    if %%i ==35 goto qsreplace
+    if %%i ==36 goto chaos
+    if %%i ==37 goto alterx
+    if %%i ==38 goto asnmap
+    if %%i ==39 goto secretfinder
+    if %%i ==40 goto recx
+    if %%i ==41 goto urlfinder
+    if %%i ==42 goto linkfinder
+    if %%i ==43 goto gotator
+    if %%i ==44 goto tools
 )
 pause
 goto menu
@@ -384,6 +386,397 @@ if %errorlevel%==0 (
     go install -v github.com/sa7mon/s3scanner@latest
 )
 
+:shortscan
+REM === Check if shortscan is installed and install if not ===
+cls
+where shortscan >nul 2>nul
+if %errorlevel%==0 (
+    echo shortscan is already installed. Skipping...
+) else (
+    echo Installing shortscan...
+    go install -v github.com/bitquark/shortscan/cmd/shortscan@latest
+)
+
+:gxss
+REM === Check if gxss is installed and install if not ===
+cls
+where gxss >nul 2>nul
+if %errorlevel%==0 (
+    echo gxss is already installed. Skipping...
+) else (
+    echo Installing gxss...
+    go install -v github.com/KathanP19/Gxss@latest
+)
+
+:crlfuzz
+REM === Check if crlfuzz is installed and install if not ===
+cls
+where crlfuzz >nul 2>nul
+if %errorlevel%==0 (
+    echo crlfuzz is already installed. Skipping...
+) else (
+    echo Installing crlfuzz...
+    go install -v github.com/dwisiswant0/crlfuzz/cmd/crlfuzz@latest
+)
+
+
+:qsreplace
+REM === Check if qsreplace is installed and install if not ===
+cls
+where qsreplace >nul 2>nul
+if %errorlevel%==0 (
+    echo qsreplace is already installed. Skipping...
+) else (
+    echo Installing qsreplace...
+    go install -v github.com/tomnomnom/qsreplace@latest
+)
+
+:chaos
+REM === Check if chaos is installed and install if not ===
+cls
+where chaos >nul 2>nul
+if %errorlevel%==0 (
+    echo chaos is already installed. Skipping...
+) else (
+    echo Installing chaos...
+    go install -v github.com/projectdiscovery/chaos-client/cmd/chaos@latest
+    echo This tool requires an API key to work properly.
+)
+
+:alterx
+REM === Check if alterX is installed and install if not ===
+cls
+where alterx >nul 2>nul
+if %errorlevel%==0 (
+    echo alterX is already installed. Skipping...
+) else (
+    echo Installing alterX...
+    go install -v github.com/projectdiscovery/alterx/cmd/alterx@latest
+)
+
+:gotator
+REM === Check if gotator is installed and install if not ===
+cls
+where gotator >nul 2>nul
+if %errorlevel%==0 (
+    echo gotator is already installed. Skipping...
+) else (
+    echo Installing gotator...
+    go install -v github.com/Josue87/gotator@latest   
+)
+
+:sstimap
+cls
+echo Checking if SSTImap VENV exists...
+:: Check if venv exists and has content
+if exist "%PYTHON_VENV%\sstimap" (
+    dir "%PYTHON_VENV%\sstimap\" >nul 2>&1
+    if errorlevel 1 (
+        echo Creating VENV...
+        python -m venv "%PYTHON_VENV%\sstimap"
+    ) else (
+        echo [-] VENV already exists. Skipping Creation...
+    )
+) 
+echo Checking if SSTImap is installed...
+:: Check if repo exists
+if exist "%TOOLS_DIR%\SSTImap\" (
+    dir "%TOOLS_DIR%\SSTImap\" >nul 2>&1
+    if errorlevel 1 (
+        echo Installing SSTImap...
+        git clone https://github.com/vladko312/SSTImap.git "%TOOLS_DIR%\SSTImap"
+        call "%PYTHON_VENV%\sstimap\Scripts\activate.bat"
+        pip install -r "%TOOLS_DIR%\SSTImap\requirements.txt"
+        deactivate  
+    ) else (
+        echo SSTImap already exists. Skipping Clone...
+    )
+)
+
+:xsstrike
+cls
+echo Checking if XSStrike VENV exists...
+:: Check if venv exists and has content
+if exist "%PYTHON_VENV%\xsstrike" (
+    dir "%PYTHON_VENV%\xsstrike\" >nul 2>&1
+    if errorlevel 1 (
+        echo Creating VENV...
+        python -m venv "%PYTHON_VENV%\xsstrike"
+    ) else (
+        echo [-] VENV already exists. Skipping Creation...
+    )
+) 
+echo Checking if XSStrike is installed...
+:: Check if repo exists
+if exist "%TOOLS_DIR%\XSStrike\" (
+    dir "%TOOLS_DIR%\XSStrike\" >nul 2>&1
+    if errorlevel 1 (
+        echo Installing XSStrike...
+        git clone https://github.com/s0md3v/XSStrike "%TOOLS_DIR%\XSStrike"
+        call "%PYTHON_VENV%\xsstrike\Scripts\activate.bat"
+        pip install -r "%TOOLS_DIR%\XSStrike\requirements.txt"
+        deactivate  
+    ) else (
+        echo XSStrike already exists. Skipping Clone...
+    )
+)
+
+:csrfscan
+cls
+echo Checking if CSRFscan VENV exists...
+:: Check if venv exists and has content
+if exist "%PYTHON_VENV%\csrfscan" (
+    dir "%PYTHON_VENV%\csrfscan\" >nul 2>&1
+    if errorlevel 1 (
+        echo Creating VENV...
+        python -m venv "%PYTHON_VENV%\csrfscan"
+    ) else (
+        echo [-] VENV already exists. Skipping Creation...
+    )
+) 
+echo Checking if CSRFscan is installed...
+:: Check if repo exists
+if exist "%TOOLS_DIR%\Bolt\" (
+    dir "%TOOLS_DIR%\Bolt\" >nul 2>&1
+    if errorlevel 1 (
+        echo Installing CSRFscan...
+        git clone https://github.com/s0md3v/Bolt "%TOOLS_DIR%\Bolt"
+        call "%PYTHON_VENV%\csrfscan\Scripts\activate.bat"
+        pip install -r "%TOOLS_DIR%\Bolt\requirements.txt"
+        deactivate  
+    ) else (
+        echo CSRFscan already exists. Skipping Clone...
+    )
+)
+
+:ssrfmap
+cls
+echo Checking if SSRFmap VENV exists...
+:: Check if venv exists and has content
+if exist "%PYTHON_VENV%\ssrfmap" (
+    dir "%PYTHON_VENV%\ssrfmap\" >nul 2>&1
+    if errorlevel 1 (
+        echo Creating VENV...
+        python -m venv "%PYTHON_VENV%\ssrfmap"
+    ) else (
+        echo [-] VENV already exists. Skipping Creation...
+    )
+) 
+echo Checking if SSRFmap is installed...
+:: Check if repo exists
+if exist "%TOOLS_DIR%\SSRFmap\" (
+    dir "%TOOLS_DIR%\SSRFmap\" >nul 2>&1
+    if errorlevel 1 (
+        echo Installing SSRFmap...
+        git clone https://github.com/swisskyrepo/SSRFmap "%TOOLS_DIR%\SSRFmap"
+        call "%PYTHON_VENV%\ssrfmap\Scripts\activate.bat"
+        pip install -r "%TOOLS_DIR%\ssrfmap\requirements.txt"
+        deactivate  
+    ) else (
+        echo SSRFmap already exists. Skipping Clone...
+    )
+)
+
+:dirsearch
+cls
+echo Checking if Dirsearch VENV exists...
+:: Check if venv exists and has content
+if exist "%PYTHON_VENV%\dirsearch" (
+    dir "%PYTHON_VENV%\dirsearch\" >nul 2>&1
+    if errorlevel 1 (
+        echo Creating VENV...
+        python -m venv "%PYTHON_VENV%\dirsearch"
+    ) else (
+        echo [-] VENV already exists. Skipping Creation...
+    )
+) 
+echo Checking if Dirsearch is installed...
+:: Check if repo exists
+if exist "%TOOLS_DIR%\dirsearch\" (
+    dir "%TOOLS_DIR%\dirsearch\" >nul 2>&1
+    if errorlevel 1 (
+        echo Installing Dirsearch...
+        git clone https://github.com/maurosoria/dirsearch "%TOOLS_DIR%\dirsearch"
+        call "%PYTHON_VENV%\dirsearch\Scripts\activate.bat"
+        pip install -r "%TOOLS_DIR%\dirsearch\requirements.txt"
+        deactivate  
+    ) else (
+        echo Dirsearch already exists. Skipping Clone...
+    )
+)
+
+:corsy
+cls
+echo Checking if Corsy VENV exists...
+:: Check if venv exists and has content
+if exist "%PYTHON_VENV%\corsy" (
+    dir "%PYTHON_VENV%\corsy\" >nul 2>&1
+    if errorlevel 1 (
+        echo Creating VENV...
+        python -m venv "%PYTHON_VENV%\corsy"
+    ) else (
+        echo [-] VENV already exists. Skipping Creation...
+    )
+) 
+echo Checking if Corsy is installed...
+:: Check if repo exists
+if exist "%TOOLS_DIR%\Corsy\" (
+    dir "%TOOLS_DIR%\Corsy\" >nul 2>&1
+    if errorlevel 1 (
+        echo Installing Corsy...
+        git clone https://github.com/s0md3v/Corsy "%TOOLS_DIR%\Corsy"
+        call "%PYTHON_VENV%\corsy\Scripts\activate.bat"
+        pip install -r "%TOOLS_DIR%\Corsy\requirements.txt"
+        deactivate  
+    ) else (
+        echo Corsy already exists. Skipping Clone...
+    )
+)
+
+:linkfinder
+cls
+echo Checking if LinkFinder VENV exists...
+:: Check if venv exists and has content
+if exist "%PYTHON_VENV%\linkfinder" (
+    dir "%PYTHON_VENV%\linkfinder\" >nul 2>&1
+    if errorlevel 1 (
+        echo Creating VENV...
+        python -m venv "%PYTHON_VENV%\linkfinder"
+    ) else (
+        echo [-] VENV already exists. Skipping Creation...
+    )
+) 
+echo Checking if linkfinder is installed...
+:: Check if repo exists
+call "%PYTHON_VENV%\linkfinder\Scripts\activate.bat
+where linkfinder >nul 2>nul
+if %errorlevel%==0 (
+    echo LinkFinder is already installed. Skipping...
+    deactivate
+) else (
+    echo Installing linkfinder...
+    pip install --upgrade pip setuptools
+    pip install git+https://github.com/GerbenJavado/LinkFinder.git
+    deactivate 
+)
+
+:wapiti
+cls
+where wapiti >nul 2>nul
+if %errorlevel%==0 (
+    echo Wapiti is already installed. Skipping...
+) else (
+    echo Installing Wapiti...
+    pipx install wapiti3
+)
+
+:paramspider
+cls
+where paramspider >nul 2>nul
+if %errorlevel%==0 (
+    echo Paramspider is already installed. Skipping...
+) else (
+    echo Installing Paramspider...
+    git clone https://github.com/devanshbatham/paramspider "%TOOLS_DIR%/paramspider"
+    pipx install %TOOLS_DIR%\paramspider
+)
+
+:sqlmap
+cls
+echo Checking if SQLmap is installed...
+if exist %TOOLS_DIR%\sqlmap (
+    dir "%TOOLS_DIR%\sqlmap\" >nul 2>&1
+    if %errorlevel%==1 (
+        echo Installing SQLmap...
+        git clone https://github.com/sqlmapproject/sqlmap "%TOOLS_DIR%\sqlmap"
+    )
+)
+
+:arjun
+cls
+echo Checking if arjun is installed...
+where arjun >nul 2>nul
+if %errorlevel%==0 (
+    echo Arjun is already installed. Skipping
+) else (
+    echo Installing Arjun...
+    pipx install arjun
+)
+
+:uro
+cls
+echo Checking if Uro is installed...
+where uro >nul 2>nul
+if %errorlevel%==0 (
+    echo Uro is already installed. Skipping
+) else (
+    echo Installing Uro...
+    pipx install uro
+)
+
+:nmap
+cls
+echo Checking if nmap is installed...
+where nmap >nul 2>nul
+if %errorlevel%==0 (
+    echo Nmap is already installed
+) else (
+    echo Downloading and installing Nmap...
+    powershell -c "Invoke-WebRequest -Uri 'https://nmap.org/dist/nmap-7.98-setup.exe' -OutFile '%USERPROFILE%\Bug-Bounty\nmap-7.98-setup.exe'"
+    start /wait "" "%USERPROFILE%\Bug-Bounty\nmap-7.98-setup.exe" /quiet InstallAllUsers=1 PrependPath=1
+)
+
+:secretfinder
+cls
+echo Checking if SecretFinder VENV exists...
+:: Check if venv exists and has content
+if exist "%PYTHON_VENV%\secretfinder" (
+    dir "%PYTHON_VENV%\secretfinder\" >nul 2>&1
+    if errorlevel 1 (
+        echo Creating VENV...
+        python -m venv "%PYTHON_VENV%\secretfinder"
+    ) else (
+        echo [-] VENV already exists. Skipping Creation...
+    )
+) 
+echo Checking if SecretFinder is installed...
+:: Check if repo exists
+if exist "%TOOLS_DIR%\SecretFinder\" (
+    dir "%TOOLS_DIR%\SecretFinder\" >nul 2>&1
+    if errorlevel 1 (
+        echo Installing SecretFinder...
+        git clone https://github.com/m4ll0k/SecretFinder.git "%TOOLS_DIR%\SecretFinder"
+        call "%PYTHON_VENV%\secretfinder\Scripts\activate.bat"
+        pip install -r "%TOOLS_DIR%\SecretFinder\requirements.txt"
+        deactivate  
+    ) else (
+        echo SecretFinder already exists. Skipping...
+    )
+)
+
+:dnsgen
+cls
+echo Checking if dnsgen VENV exists...
+:: Check if venv exists and has content
+if exist "%PYTHON_VENV%\dnsgen" (
+    dir "%PYTHON_VENV%\dnsgen\" >nul 2>&1
+    if errorlevel 1 (
+        echo Creating VENV...
+        python -m venv "%PYTHON_VENV%\dnsgen"
+    ) else (
+        echo VENV already exists. Skipping Creation...
+    )
+) 
+echo Checking if dnsgen is installed...
+call "%PYTHON_VENV%\dnsgen\Scripts\activate.bat
+where dnsgen >nul 2>nul
+if %errorlevel%==0 (
+    echo Dnsgen is already installed. Skipping...
+) else (
+    echo Installing DNSgen...
+    python -m pip install dnsgen
+    deactivate
+)
 
 
 

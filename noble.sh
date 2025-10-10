@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+
+### CONFIGURE LOSTSEC'S GF PATTERNS
 set -euo pipefail
 IFS=$'\n\t'
 echo "
@@ -78,6 +80,65 @@ curl -s "https://crt.sh/?q=$CLEAN_DOMAIN&output=json" \
   | sed 's/^\*\.//' \
   | sort -u > "$DOMAIN_DIR/crtsh.txt" || true
 
+# === Alienvault scrape ===
+echo "[+] Starting Alienvault url scrape..."
+page=1
+tmpjson=$(mktemp "$DOMAIN_DIR/alienvault.XXXXXX.json")
+
+# Turn off errexit just for this block so we can explicitly handle failures
+set +e
+
+while true; do
+    # run curl; allow it to fail without killing the whole script
+    http_code=$(curl -s -w "%{http_code}" -o "$tmpjson" \
+      "https://otx.alienvault.com/api/v1/indicators/hostname/$CLEAN_DOMAIN/url_list?limit=500&page=$page")
+    curl_exit=$?
+
+    # If curl itself failed (network, DNS, etc)
+    if [ $curl_exit -ne 0 ]; then
+        echo "[!] curl failed with exit $curl_exit on page $page — retrying after 30s"
+        sleep 30
+        # you can implement retry count here; using continue to retry
+        continue
+    fi
+
+    # If rate limited
+    if [ "$http_code" -eq 429 ]; then
+        echo "Rate limit hit — waiting 60 seconds..."
+        sleep 60
+        continue
+    fi
+
+    # If other HTTP error
+    if [ "$http_code" -ne 200 ]; then
+        echo "Error: received HTTP $http_code on page $page — stopping AlienVault block."
+        break
+    fi
+
+    # Extract URLs safely — don't let jq non-zero kill the script
+    urls=$(jq -r '.url_list[]?.url' "$tmpjson" 2>/dev/null || true)
+
+    # Stop if no URLs found
+    if [ -z "$urls" ] || [ "$urls" = "null" ]; then
+        echo "No more URLs found"
+        break
+    fi
+
+    echo "$urls" | sed 's/^\*\.//' | sort -u >> "$DOMAIN_DIR/alienvault.txt"
+
+    ((page++))
+    sleep 1  # polite delay between requests
+done
+
+# restore errexit
+set -e
+
+rm -f "$tmpjson"
+
+
+    
+
+
 echo "[+] Collecting subdomains using FFUF..."
 # Ensure wordlist path correctness
 FFUF_WORDLIST="${WORDLIST_DIR}/SecLists/Discovery/DNS/subdomains-top1million-5000.txt"
@@ -148,7 +209,6 @@ if [ -s "$DOMAIN_DIR/filtered_domains_$TIMESTAMP.txt" ]; then
     cat "$DOMAIN_DIR/filtered_domains_$TIMESTAMP.txt" | gau > "$DOMAIN_DIR/gausubs_$TIMESTAMP.txt" || true
     cat "$DOMAIN_DIR/filtered_domains_$TIMESTAMP.txt" | waybackurls > "$DOMAIN_DIR/waybacksubs_$TIMESTAMP.txt" 2>/dev/null || true
 
-    # katana: if katana supports -l input; fallback to per-host loop
     if command -v katana >/dev/null 2>&1; then
         katana -u "$DOMAIN_DIR/filtered_domains_$TIMESTAMP.txt" -d 5 -kf -jc -fx -ef woff,css,png,svg,jpg,woff2,jpeg,gif -o "$DOMAIN_DIR/katana_subs_$TIMESTAMP.txt" 2>/dev/null || true
     else
@@ -160,11 +220,32 @@ echo "[+] Combining spidered URLs..."
 cat "$DOMAIN_DIR/gausubs_$TIMESTAMP.txt" "$DOMAIN_DIR/waybacksubs_$TIMESTAMP.txt" "$DOMAIN_DIR/katana_subs_$TIMESTAMP.txt" \
   | sort -u | tee "$DOMAIN_DIR/allurls_$TIMESTAMP.txt" >/dev/null || true
 
+# === Collect urls with 200 OK status code ===
+echo "[+] Searching for live URLs..."
+httpx -l "$DOMAIN_DIR/allurls_$TIMESTAMP.txt" -mc 200 -o "$DOMAIN_DIR/filtered_urls_$TIMESTAMP.txt"
+
 # === Parameter / JS / XSS reconnaissance ===
 echo "[+] Collecting Cross Site scripting parameters..."
-if [ -f "$DOMAIN_DIR/allurls_$TIMESTAMP.txt" ]; then
-    cat "$DOMAIN_DIR/allurls_$TIMESTAMP.txt" | gf xss | sort -u | tee "$DOMAIN_DIR/xss_params_$TIMESTAMP.txt" >/dev/null || true
+if [ -f "$DOMAIN_DIR/filtered_urls_$TIMESTAMP.txt" ]; then
+    cat "$DOMAIN_DIR/filtered_urls_$TIMESTAMP.txt" | gf xss | sort -u | tee "$DOMAIN_DIR/xss_params_$TIMESTAMP.txt" >/dev/null || true
 fi
+
+echo "[+] Collecting parameters..."
+arjun -i "$DOMAIN_DIR/subdomains_$TIMESTAMP.txt" > "$DOMAIN_DIR/arjun-param_$TIMESTAMP.txt" 2>/dev/null || true
+
+sudo paramspider -d "$DOMAIN_DIR/subdomains_$TIMESTAMP.txt" 2>/dev/null || true
+if [ -d results ]; then
+    find results -type f -name "*.txt" -exec cat {} + | sort -u > "$DOMAIN_DIR/paramspider_all_urls_$TIMESTAMP.txt"
+    mv results "$DOMAIN_DIR/" || true
+fi
+
+grep -E '\?[^=]+=.+$' "$DOMAIN_DIR/filtered_urls_$TIMESTAMP.txt" | sort -u > "$DOMAIN_DIR/params_$TIMESTAMP.txt"
+
+echo "[+] Searching for live URLs and merging..."
+cat "$DOMAIN_DIR/arjun-param_$TIMESTAMP.txt" "$DOMAIN_DIR/paramspider_all_urls_$TIMESTAMP.txt" "$DOMAIN_DIR/params_$TIMESTAMP.txt" | sort -u | httpx -mc 200 > "$DOMAIN_DIR/allparams.txt"
+
+echo "[+] Starting DAST scan on URLs with parameters..."
+nuclei -dast -retries 2 -silent -o "$NUCLEI_RESULTS" < "$DOMAIN_DIR/allparams.txt"
 
 echo "[+] Extracting js files..."
 grep -E "\.js($|\?)" "$DOMAIN_DIR/allurls_$TIMESTAMP.txt" | sed 's/?.*$//' | sort -u > "$DOMAIN_DIR/js_$TIMESTAMP.txt" 2>/dev/null || true
@@ -199,14 +280,6 @@ if [ -s "$DOMAIN_DIR/fuzz_targets_$TIMESTAMP.txt" ]; then
             -x 403,301,429,302,404,500,501,502,503 -e xml,json,sql,db,log,yml,yaml,bak,txt,tar.gz,zip,js,pdf,env,cgi -recursive || true
     done < "$DOMAIN_DIR/fuzz_targets_$TIMESTAMP.txt"
     deactivate || true
-fi
-
-echo "[+] Collecting parameters (arjun/paramspider)..."
-arjun -i "$DOMAIN_DIR/subdomains_$TIMESTAMP.txt" > "$DOMAIN_DIR/arjun-param_$TIMESTAMP.txt" 2>/dev/null || true
-paramspider -l "$DOMAIN_DIR/subdomains_$TIMESTAMP.txt" 2>/dev/null || true
-if [ -d results ]; then
-    find results -type f -name "*.txt" -exec cat {} + | sort -u > "$DOMAIN_DIR/paramspider_all_urls_$TIMESTAMP.txt"
-    mv results "$DOMAIN_DIR/" || true
 fi
 
 echo "[+] Extracting IPs for port scanning..."

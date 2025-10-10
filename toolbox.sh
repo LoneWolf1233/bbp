@@ -632,7 +632,7 @@ install_wapiti() {
     echo -e "${yellow}[!] Wapiti already exists. Skipping...${reset}"
   else
     echo -e "${green}Installing Wapiti...${reset}"
-    pipx install wapiti3 || echo -e "${red}Wapiti may already be installed.${reset}"
+    pipx install wapiti3 
   fi
 }
 
@@ -804,6 +804,7 @@ install_dnsgen() {
   if command -v dnsgen >/dev/null 2>&1; then
     echo -e "${red} [-] DnsGen exists. Skipping...${reset}"
   else
+    echo -e "${green} [+] Installing DNSgen"
     python3 -m pip install dnsgen
     deactivate
   fi
