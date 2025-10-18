@@ -28,7 +28,8 @@ echo "
                                                          ╚═╝╚═╝ ╚═════╝                                                                          
                                                                                                                                                  
 "
-# CORRECT ALL VENV CONDITIONS!
+# ADD OPTIONS (GETOPTS)!
+# ORGANIZE THE TOOLS BETTER
 
 # === Logging ===
 LOGFILE="$HOME/multi_installer.log"
@@ -109,6 +110,9 @@ TOOLS=(
   "linkfinder"
   "dnsgen"
   "gotator"
+  "urlscan"
+  "4-ZERO-3"
+  "virustotal urls"
   "Only Wordlists"
   "Only Tools"
 
@@ -120,6 +124,10 @@ for i in "${!TOOLS[@]}"; do
 done
 
 read -p $'\nEnter the numbers of the tools you want to install (e.g. 1 3 5): ' -a choices
+num_choice=0
+total_tools=$(echo ${#choices[@]})
+echo "You chose $total_tools tool/s to install."
+
 
 install_broken_link_checker() {
   clear
@@ -464,7 +472,7 @@ install_gf_patterns(){
     echo -e "${green} [+] Installing Gf-Patterns...${reset}"
     mkdir -p $HOME/.gf
     echo -e "${green}Downloading gf patterns...${reset}"
-    git clone https://github.com/1ndianl33t/Gf-Patterns.git "$WORDLIST_DIR/Gf-Patterns"
+    git clone https://github.com/coffinxp/GFpattren.git "$WORDLIST_DIR/Gf-Patterns"
     cp "$WORDLIST_DIR/Gf-Patterns"/*.json $HOME/.gf/
     echo 'source $HOME/.gf/gf-completions.bash' >> $HOME/.bashrc
   fi
@@ -821,6 +829,46 @@ install_gotator() {
   fi
 }
 
+install_urlscan() {
+  echo -e "${yellow} [~] Checking if urlscan is installed...${reset}"
+  if [ -f "$TOOLS_DIR/urlscan.py" ]; then
+    echo -e "${red} [-] Urlscan is already installed. Skipping...${reset}"
+  else
+    echo -e "${green} [+] Installing urlscan...${reset}"
+    cd "$TOOLS_DIR"
+    wget https://github.com/coffinxp/scripts/blob/main/urlscan.py
+    cd $HOME
+    echo "${yellow}REMINDER! This tool requires a URLscan API key to function properly. Please add it to urlscan.py. ${reset}"
+    ((num_choice++))
+  fi
+}
+
+install_virustotal_urls() {
+  echo -e "${yellow} [~] Checking if VirusTotal-URLs is installed...${reset}"
+  if [ -f "$TOOLS_DIR/virustotal" ]; then
+    echo -e "${red} [-] VirusTotal-URLs is installed...${reset}"
+  else
+    echo -e "${green} [+] Installing VirusTotal-URLs...${reset}"
+    cd "$TOOLS_DIR"
+    wget https://github.com/coffinxp/scripts/blob/main/virustotal.sh
+    cd "$HOME"
+    echo "${yellow}REMINDER! This tool requires THREE VirusTotal API keys to function properly. Please add them to virustotal.sh.${reset}"
+    ((num_choice++))
+  fi
+}
+
+install_4_ZERO_3() {
+  echo -e "${yellow} [~] Checking if 4-ZERO-3 is installed...${reset}"
+  if [ -f "$TOOLS_DIR/4-ZERO-3/403-bypass.sh" ]; then
+    echo -e "${red} [-] 4-ZERO-3 is installed. Skipping...${reset}"
+  else
+    echo -e "${green} [+] Installing 4-ZERO-3...${reset}"
+    git clone https://github.com/Dheerajmadhukar/4-ZERO-3.git "$TOOLS_DIR/4-ZERO-3"
+    ((num_choice++))
+  fi
+}
+
+
 install_wordlists() {
   echo -e "${yellow} [+] Downloading wordlists...${reset}"
   if [ -d "$WORDLIST_DIR/SecLists" ] && [ "$(ls -A "$WORDLIST_DIR/SecLists")" ]; then
@@ -911,6 +959,9 @@ install_tools_only() {
   install_linkfinder
   install_dnsgen
   install_gotator
+  install_urlscan
+  install_virustotal_urls
+  install_4_ZERO_3
 }
 
 install_all() {
@@ -964,6 +1015,9 @@ install_all() {
   install_linkfinder
   install_dnsgen
   install_gotator
+  install_urlscan
+  install_virustotal_urls
+  install_4_ZERO_3
   install_wordlists
 }
 
@@ -1019,8 +1073,11 @@ for choice in "${choices[@]}"; do
     48) install_linkfinder ;;
     49) install_dnsgen ;;
     50) install_gotator ;;
-    51) install_wordlists ;;
-    52) install_tools_only ;;
+    51) install_urlscan ;;
+    52) install_virustotal_urls ;;
+    53) install_4_ZERO_3 ;;
+    54) install_wordlists ;;
+    55) install_tools_only ;;
     
     *) echo -e "${red}Invalid choice: $choice${reset}" ;;
   esac
@@ -1029,5 +1086,5 @@ done
 
 
 # === Done ===
-echo -e "${green}All tools installed successfully!${reset}"
+echo -e "${green} $num_choice/$total_tools installed successfully!${reset}"
 echo -e "${yellow}Run 'source $HOME/.bashrc' or restart your terminal to use the aliases.${reset}"

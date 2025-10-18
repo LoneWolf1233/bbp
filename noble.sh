@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-### CONFIGURE LOSTSEC'S GF PATTERNS
+### ADD FUNCTIONS AND ARGUMENTS/OPTIONS (GETOPTS)
 set -euo pipefail
 IFS=$'\n\t'
 echo "
@@ -176,7 +176,7 @@ fi
 echo "[+] Combining and deduplicating..."
 # Only cat files that exist
 cat_files=()
-for f in subfinder.txt assetfinder.txt crtsh.txt ffuf.txt wayback.txt virustotal.txt; do
+for f in subfinder.txt assetfinder.txt crtsh.txt ffuf.txt wayback.txt virustotal.txt alienvault.txt; do
     if [ -f "$DOMAIN_DIR/$f" ]; then
         cat_files+=("$DOMAIN_DIR/$f")
     fi
@@ -349,6 +349,8 @@ else
 fi
 
 echo "[+] Scanning for Cross Site Scripting 2/3..."
+if [ -z "$COLLABORATOR_LINK" ]; then
+    echo "[-] You haven't entered your collaborator link. Skipping dalfox scan..."
 if [ -s "$DOMAIN_DIR/xss_params_$TIMESTAMP.txt" ]; then
     cat "$DOMAIN_DIR/xss_params_$TIMESTAMP.txt" | dalfox pipe --blind $COLLABORATOR_LINK --waf-bypass --silence | tee "$DOMAIN_DIR/2_xss_$TIMESTAMP.txt" || true
 else
