@@ -344,20 +344,91 @@ run_wayback() {
 }
 
 run_virustotal() {
-    log_info "Collecting subdomains from VirusTotal (v3)"
+    log_info "Collecting subdomains from VirusTotal (v3)..."
+
     if [ -z "${VT_API_KEY:-}" ]; then
         log_warn "VT_API_KEY not set; skipping VirusTotal"
         return
     fi
-    
-    if curl -s --request GET \
-        --url "https://www.virustotal.com/api/v3/domains/$TARGET/subdomains?limit=100" \
-        --header "x-apikey: $VT_API_KEY" \
-        | jq -r '.data[].id' 2>/dev/null \
-        | sort -u > "$DOMAIN_DIR/virustotal.txt" 2>/dev/null; then
-        log_verbose "VirusTotal enumeration completed"
+
+    # Normalize domain for VT: strip scheme and path
+    local domain="$TARGET"
+    domain="${domain#http://}"
+    domain="${domain#https://}"
+    domain="${domain%%/*}"
+
+    if [ -z "$domain" ]; then
+        log_warn "Could not normalize domain for VirusTotal from target '$TARGET'"
+        return
+    fi
+
+    local page_size=40   # VT often uses 40 as a standard page size
+    local tmp_json
+    tmp_json=$(mktemp "$DOMAIN_DIR/virustotal.XXXXXX.json" 2>/dev/null || echo "/tmp/virustotal.$$.json")
+
+    # Clear previous results if any
+    : > "$DOMAIN_DIR/virustotal.txt"
+
+    # First page URL
+    local url="https://www.virustotal.com/api/v3/domains/$domain/subdomains?limit=$page_size"
+
+    while :; do
+        # Get JSON + HTTP code
+        local http_code
+        http_code=$(curl -s -w "%{http_code}" \
+            -H "x-apikey: $VT_API_KEY" \
+            -H "Accept: application/json" \
+            -o "$tmp_json" \
+            "$url")
+
+        if [ "$http_code" -eq 401 ] || [ "$http_code" -eq 403 ]; then
+            log_warn "VirusTotal API auth error (HTTP $http_code). Check VT_API_KEY and quota."
+            break
+        fi
+
+        if [ "$http_code" -eq 429 ]; then
+            log_warn "VirusTotal rate limit hit (HTTP 429). Waiting 60 seconds..."
+            sleep 60
+            continue
+        fi
+
+        if [ "$http_code" -eq 400 ]; then
+            # Helpful debug: log part of the response body
+            local snippet
+            snippet=$(head -c 200 "$tmp_json" 2>/dev/null | tr '\n' ' ')
+            log_warn "VirusTotal HTTP 400 for domain '$domain'. Response snippet: $snippet"
+            break
+        fi
+
+        if [ "$http_code" -ne 200 ]; then
+            log_warn "VirusTotal HTTP $http_code for $domain; skipping further requests."
+            break
+        fi
+
+        if command -v jq >/dev/null 2>&1; then
+            # Append subdomains if present
+            jq -r '.data[]?.id // empty' "$tmp_json" 2>/dev/null >> "$DOMAIN_DIR/virustotal.txt" || true
+
+            # Next page URL (VT v3 uses a full URL in links.next)
+            local next
+            next=$(jq -r '.links.next // empty' "$tmp_json" 2>/dev/null)
+            if [ -z "$next" ] || [ "$next" = "null" ]; then
+                break
+            fi
+            url="$next"
+        else
+            log_warn "jq not found; cannot parse VirusTotal response."
+            break
+        fi
+    done
+
+    rm -f "$tmp_json"
+
+    if [ -s "$DOMAIN_DIR/virustotal.txt" ]; then
+        sort -u "$DOMAIN_DIR/virustotal.txt" -o "$DOMAIN_DIR/virustotal.txt" 2>/dev/null || true
+        log_verbose "VirusTotal enumeration completed (saved to virustotal.txt)"
     else
-        log_warn "VirusTotal enumeration failed"
+        log_warn "VirusTotal returned no subdomains."
     fi
 }
 
@@ -434,7 +505,7 @@ spider_domains() {
     
     if command -v katana >/dev/null 2>&1; then
         log_verbose "Running katana..."
-        katana -u "$DOMAIN_DIR/filtered_domains_$TIMESTAMP.txt" -d 5 -kf -jc -fx -ef woff,css,png,svg,jpg,woff2,jpeg,gif -o "$DOMAIN_DIR/katana_subs_$TIMESTAMP.txt" 2>/dev/null || true
+        katana -u "$DOMAIN_DIR/filtered_domains_$TIMESTAMP.txt" -d 5 -fx -ef woff,css,png,svg,jpg,woff2,jpeg,gif -o "$DOMAIN_DIR/katana_subs_$TIMESTAMP.txt" 2>/dev/null || true
     else
         log_warn "katana not found; skipping"
         touch "$DOMAIN_DIR/katana_subs_$TIMESTAMP.txt"
@@ -558,7 +629,12 @@ fuzz_targets() {
         touch "$DOMAIN_DIR/fuzz_targets_$TIMESTAMP.txt"
     fi
     
-    log_info "Fuzzing targets with dirsearch..."
+    # Normalize targets: ensure trailing slash on URLs for better directory fuzzing
+    if [ -s "$DOMAIN_DIR/fuzz_targets_$TIMESTAMP.txt" ]; then
+        sed -E -i 's#^(https?://[^/]+)$#\1/#' "$DOMAIN_DIR/fuzz_targets_$TIMESTAMP.txt" 2>/dev/null || true
+    fi
+
+    log_info "Fuzzing targets & IPs with dirsearch..."
     if [ ! -s "$DOMAIN_DIR/fuzz_targets_$TIMESTAMP.txt" ]; then
         log_warn "No targets for fuzzing"
         return
@@ -582,40 +658,60 @@ fuzz_targets() {
         # shellcheck source=/dev/null
         source "$PYTHON_VENV/dirsearch/bin/activate" 2>/dev/null && venv_activated=true || true
     fi
-    
-    while IFS= read -r sub; do
-        [ -z "$sub" ] && continue
-        log_verbose "dirsearch: $sub"
-        python3 "$dirsearch_script" -u "$sub" -w "$wordlist" \
-            -x 403,301,429,302,404,500,501,502,503 \
-            -e xml,json,sql,db,log,yml,yaml,bak,txt,tar.gz,zip,js,pdf,env,cgi \
-            -recursive >/dev/null 2>&1 || true
-    done < "$DOMAIN_DIR/fuzz_targets_$TIMESTAMP.txt"
-    
-    if [ "$venv_activated" = true ]; then
-        deactivate 2>/dev/null || true
-    fi
-}
 
-port_scanning() {
-    log_info "Extracting IPs for port scanning..."
+    log_info "Preparing IPs for fuzzing..."
+    
     if [ -f "$DOMAIN_DIR/alive_$TIMESTAMP.txt" ]; then
         grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}' "$DOMAIN_DIR/alive_$TIMESTAMP.txt" 2>/dev/null \
             | sort -u > "$DOMAIN_DIR/ip_targets.txt" || true
     else
         touch "$DOMAIN_DIR/ip_targets.txt"
     fi
+   
+    
+    while IFS= read -r sub; do
+        [ -z "$sub" ] && continue
+        log_verbose "dirsearch: $sub"
+        python3 "$dirsearch_script" -u "$sub" -w "$wordlist" \
+            -x 301,429,404,500,501,502,503 \
+            -o "$DOMAIN_DIR/domain_fuzz_output_$TIMESTAMP.txt" \
+            -e xml,json,sql,db,log,yml,yaml,bak,txt,tar.gz,zip,js,pdf,env,cgi \
+            -recursive >/dev/null 2>&1 || true
+    done < "$DOMAIN_DIR/fuzz_targets_$TIMESTAMP.txt"
+    
+    # Fuzz IP targets as http://IP/
+    while IFS= read -r ip; do
+        [ -z "$ip" ] && continue
+        local ip_url="http://$ip/"
+        log_verbose "dirsearch (IP): $ip_url"
+        python3 "$dirsearch_script" -u "$ip_url" -w "$wordlist" \
+            -x 301,429,404,500,501,502,503 \
+            -o "$DOMAIN_DIR/ip_fuzz_output_$TIMESTAMP.txt" \
+            -e xml,json,sql,db,log,yml,yaml,bak,txt,tar.gz,zip,js,pdf,env,cgi \
+            -recursive >/dev/null 2>&1 || true
+    done < "$DOMAIN_DIR/ip_targets.txt"
+
+
+    if [ "$venv_activated" = true ]; then
+        deactivate 2>/dev/null || true
+    fi
+}
+
+port_scanning() {
+    
+
+    
     
     log_info "Port scanning extracted IPs with nmap..."
     if [ -s "$DOMAIN_DIR/ip_targets.txt" ] && command -v nmap >/dev/null 2>&1; then
-        nmap -iL "$DOMAIN_DIR/ip_targets.txt" -sV -sC -A -T2 -oA "$DOMAIN_DIR/nmap_scan_$TIMESTAMP" >/dev/null 2>&1 || true
+        nmap -iL "$DOMAIN_DIR/ip_targets.txt" -sV -sC -A -T5 -oA "$DOMAIN_DIR/nmap_scan_$TIMESTAMP" >/dev/null 2>&1 || true
     else
         log_warn "No IPs to scan or nmap not found"
     fi
 
     log_info "Checking IPs for vulnerabilities..."
     if [ -s "$DOMAIN_DIR/ip_targets.txt" ] && command -v nmap >/dev/null 2>&1; then
-        nmap -iL "$DOMAIN_DIR/ip_targets.txt" --script vuln -oA "$DOMAIN_DIR/nmap_vuln_scan_$TIMESTAMP" >/dev/null 2>&1 || true
+        nmap -iL "$DOMAIN_DIR/ip_targets.txt" --script vuln -oA -T5 "$DOMAIN_DIR/nmap_vuln_scan_$TIMESTAMP" >/dev/null 2>&1 || true
     else
         log_warn "No IPs to scan or nmap not found"
     fi
@@ -639,31 +735,23 @@ scan_iis_hosts() {
         while IFS= read -r sub; do
             [ -z "$sub" ] && continue
             log_verbose "shortscan $sub"
-            shortscan "$sub" >/dev/null 2>&1 || true
+            $sub >> "$DOMAIN_DIR/shortscan_output_${TIMESTAMP}.txt"
+            shortscan "$sub" >> "$DOMAIN_DIR/shortscan_output_${TIMESTAMP}.txt" >/dev/null 2>&1 || true
         done < "$DOMAIN_DIR/iis_hosts_$TIMESTAMP.txt"
     fi
 }
 
 vulnerability_scanning() {
-    log_info "Performing basic vulnerability scanning (nikto/nuclei)..."
+    log_info "Performing basic vulnerability scanning (nuclei)..."
     if [ ! -s "$DOMAIN_DIR/subdomains_$TIMESTAMP.txt" ]; then
         log_warn "No subdomains for vulnerability scanning"
         return
     fi
     
-    if command -v nikto >/dev/null 2>&1; then
-        while IFS= read -r sub; do
-            [ -z "$sub" ] && continue
-            log_verbose "nikto on $sub"
-            nikto -host "$sub" > "$DOMAIN_DIR/nikto_${sub}_${TIMESTAMP}.txt" 2>/dev/null || true
-        done < "$DOMAIN_DIR/subdomains_$TIMESTAMP.txt"
-    else
-        log_warn "nikto not found; skipping"
-    fi
     
     if command -v nuclei >/dev/null 2>&1; then
         log_verbose "Running nuclei on subdomains..."
-        nuclei -l "$DOMAIN_DIR/subdomains_$TIMESTAMP.txt" -o "$DOMAIN_DIR/nuclei_results_$TIMESTAMP.txt" >/dev/null 2>&1 || true
+        nuclei -l "$DOMAIN_DIR/fuzz_targets_$TIMESTAMP.txt" -o "$DOMAIN_DIR/nuclei_results_$TIMESTAMP.txt" >/dev/null 2>&1 || true
     else
         log_warn "nuclei not found; skipping"
     fi
