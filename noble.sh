@@ -735,7 +735,6 @@ scan_iis_hosts() {
         while IFS= read -r sub; do
             [ -z "$sub" ] && continue
             log_verbose "shortscan $sub"
-            $sub >> "$DOMAIN_DIR/shortscan_output_${TIMESTAMP}.txt"
             shortscan "$sub" >> "$DOMAIN_DIR/shortscan_output_${TIMESTAMP}.txt" >/dev/null 2>&1 || true
         done < "$DOMAIN_DIR/iis_hosts_$TIMESTAMP.txt"
     fi
